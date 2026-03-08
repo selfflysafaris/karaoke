@@ -25,9 +25,46 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .btn:active{transform:scale(.97)}
 .btn:hover{opacity:.85}
 .btn-ghost{background:var(--card2);color:var(--muted);border:1px solid var(--border)}
+.btn-blue{background:rgba(58,134,255,0.15);color:#3a86ff;border:1px solid rgba(58,134,255,0.35)}
+.btn-blue:hover{background:rgba(58,134,255,0.25)}
+.btn-blue.spinning .spin-ico{display:inline-block;animation:spin .7s linear infinite}
+.btn-blue .spin-ico{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
 .btn-green{background:var(--green);color:#000}
 .btn-gold{background:var(--gold);color:#000}
 .btn-red{background:rgba(230,57,70,0.15);color:var(--accent);border:1px solid rgba(230,57,70,0.3)}
+
+/* GITHUB SETUP SHEET */
+.gh-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:600;display:none;align-items:flex-end}
+.gh-overlay.open{display:flex}
+.gh-sheet{width:100%;max-width:560px;margin:0 auto;background:var(--card);border-radius:20px 20px 0 0;padding:28px 24px 40px;border-top:1px solid var(--border);max-height:92vh;overflow-y:auto}
+.gh-handle{width:40px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 20px}
+.gh-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px}
+.gh-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.gh-label{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.gh-input{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:13px 15px;font-size:14px;font-family:'DM Mono',monospace;color:var(--text);outline:none;margin-bottom:14px;transition:border-color .2s}
+.gh-input:focus{border-color:var(--blue)}
+.gh-input::placeholder{color:var(--muted);font-family:'DM Sans',sans-serif}
+.gh-hint{font-size:11px;color:var(--muted);margin-top:-10px;margin-bottom:14px;line-height:1.5;padding:0 2px}
+.gh-hint a{color:var(--blue);text-decoration:none}
+.gh-saved-badge{display:inline-block;background:rgba(6,214,160,0.15);color:var(--green);border:1px solid rgba(6,214,160,0.3);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;margin-bottom:14px}
+.gh-row{display:flex;gap:10px;margin-top:4px}
+.gh-save-btn{flex:1;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;cursor:pointer}
+.gh-clear-btn{background:rgba(230,57,70,0.12);color:var(--accent);border:1px solid rgba(230,57,70,0.3);border-radius:10px;padding:14px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:600}
+.gh-cancel-btn{width:100%;background:none;border:none;color:var(--muted);font-size:14px;padding:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px}
+
+/* UPLOAD PROGRESS */
+.gh-upload-status{margin-top:14px;display:none}
+.gh-upload-status.show{display:block}
+.gh-progress-bar{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.gh-progress-fill{height:100%;background:var(--blue);border-radius:3px;width:0%;transition:width .3s}
+.gh-progress-msg{font-size:13px;color:var(--muted);text-align:center}
+.gh-progress-msg.ok{color:var(--green)}
+.gh-progress-msg.err{color:var(--accent)}
+
+/* UPLOAD BUTTON STATE */
+.btn-purple{background:rgba(155,93,229,0.15);color:#9b5de5;border:1px solid rgba(155,93,229,0.35)}
+.btn-purple:hover{background:rgba(155,93,229,0.25)}
 
 /* LAYOUT */
 .body{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 65px)}
@@ -131,6 +168,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;z-index:100;max-width:280px}
 .toast.show{opacity:1;transform:translateY(0)}
 .config-banner{background:rgba(251,133,0,0.1);border:1px solid rgba(251,133,0,0.3);color:var(--orange);padding:9px 18px;font-size:13px;text-align:center;font-weight:500}
+.dj-offline{display:none;background:#2a0008;border-bottom:2px solid #8b0000;color:#ff6b6b;padding:10px 20px;font-weight:600;z-index:999;position:relative}
+.dj-offline.show{display:block}
+.dj-offline-title{font-size:14px;font-weight:700;margin-bottom:2px}
+.dj-offline-sub{font-size:12px;color:rgba(255,107,107,0.8);font-weight:500;line-height:1.5}
 </style>
 </head>
 <body>
@@ -139,12 +180,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   ⚠️ Firebase not configured — running in demo mode.
 </div>
 
+<div class="dj-offline" id="dj-offline-banner">
+  <div class="dj-offline-title">🔴 No Internet Connection</div>
+  <div class="dj-offline-sub">Queue updates and position writes to singers will fail until connection is restored.<br>Keep the queue visible — singers may come to you directly.</div>
+</div>
+
 <header class="header">
   <div class="dj-badge">DJ</div>
   <div class="htitle">Karaoke Console</div>
   <div class="live-wrap"><div class="live-dot"></div><span class="live-label">LIVE</span></div>
   <div class="hright">
     <button class="btn btn-ghost" onclick="refreshQueue()">⟳ Refresh</button>
+    <button class="btn btn-blue" id="songlist-btn" onclick="refreshSongList()" title="Reload songs-data.js from server">🎵 <span class="spin-ico">↻</span> Song List</button>
+    <button class="btn btn-purple" id="upload-btn" onclick="openUpload()" title="Upload new song list to GitHub">⬆️ Upload</button>
+    <button class="btn btn-ghost" onclick="openGHSetup()" title="GitHub settings">⚙️</button>
     <button class="btn btn-gold" onclick="rebalanceQueue()">⚖️ Rebalance</button>
     <button class="btn btn-green" onclick="markNextDone()">✓ Next Done</button>
   </div>
@@ -217,6 +266,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         Drag cards to reorder manually at any time. Hit <b>⚖️ Rebalance</b> to re-apply the rules.
       </div>
 
+      <div class="sec-title" style="margin-top:20px">🎵 SONG LIST MANAGEMENT</div>
+      <div class="balance-info" id="songlist-info">
+        The singer app loads songs from <b>songs-data.js</b> — a JavaScript file in the same folder as the app.<br><br>
+        <b>To update the song list:</b><br>
+        1. Run the Python extraction script on your Mac to generate a new <b>songs-data.js</b><br>
+        2. Tap <b>⬆️ Upload</b> in the header — pick the file and push directly to GitHub<br>
+        3. Tap <b>🎵 ↻ Song List</b> — singers get the new list immediately<br><br>
+        <b>First time setup:</b> Tap <b>⚙️</b> to enter your GitHub username, repo name and token.<br>
+        Credentials are saved on this device — you only need to do this once.<br><br>
+        <b>File locations (GitHub Pages):</b><br>
+        • <b>songs-data.js</b> → root of your GitHub repo (same folder as index.html)<br>
+        • <b>songs.json</b> → same folder (offline fallback — upload both together)<br>
+        • <b>PDF original</b> → keep locally on your Mac — never needed on the server<br><br>
+        <b>Last loaded:</b> <span id="songlist-last-loaded" style="color:var(--gold)">—</span><br>
+        <b>Songs in memory:</b> <span id="songlist-count" style="color:var(--gold)">—</span>
+      </div>
+
       <div class="sec-title" style="margin-top:16px">IN QUEUE NOW</div>
       <div class="stat-card" id="singer-board-wrap">
         <div id="singer-board"><p style="font-size:13px;color:var(--muted)">No singers yet</p></div>
@@ -224,6 +290,80 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
   </div>
 
+</div>
+
+<!-- GITHUB SETUP SHEET -->
+<div class="gh-overlay" id="gh-setup-overlay">
+  <div class="gh-sheet">
+    <div class="gh-handle"></div>
+    <div class="gh-title">⚙️ GitHub Setup</div>
+    <div class="gh-sub">Enter your repo details once — saved on this device only. Used to push song list updates directly to GitHub.</div>
+
+    <div id="gh-saved-indicator" style="display:none">
+      <div class="gh-saved-badge">✓ Credentials saved on this device</div>
+    </div>
+
+    <div class="gh-label">GitHub Username</div>
+    <input class="gh-input" id="gh-username" placeholder="e.g. louisashpole" autocomplete="off" spellcheck="false">
+
+    <div class="gh-label">Repository Name</div>
+    <input class="gh-input" id="gh-repo" placeholder="e.g. sonic-karaoke" autocomplete="off" spellcheck="false">
+    <div class="gh-hint">The name of your GitHub repo where the karaoke files live.</div>
+
+    <div class="gh-label">Branch</div>
+    <input class="gh-input" id="gh-branch" placeholder="main" autocomplete="off" spellcheck="false">
+    <div class="gh-hint">Usually <b style="color:var(--text)">main</b> — check your repo on github.com if unsure.</div>
+
+    <div class="gh-label">Personal Access Token (PAT)</div>
+    <input class="gh-input" id="gh-token" type="password" placeholder="github_pat_••••••••••••••••" autocomplete="off" spellcheck="false">
+    <div class="gh-hint">
+      Create one at <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">github.com → Settings → Developer settings → Fine-grained tokens</a>.<br>
+      Give it <b style="color:var(--text)">Contents: Read and write</b> on your karaoke repo only.
+      Your token is stored only on this device and never sent anywhere except GitHub.
+    </div>
+
+    <div class="gh-row">
+      <button class="gh-save-btn" onclick="saveGHSetup()">SAVE CREDENTIALS</button>
+      <button class="gh-clear-btn" onclick="clearGHSetup()">🗑 Clear</button>
+    </div>
+    <button class="gh-cancel-btn" onclick="closeGHSetup()">Cancel</button>
+  </div>
+</div>
+
+<!-- UPLOAD SHEET -->
+<div class="gh-overlay" id="gh-upload-overlay">
+  <div class="gh-sheet">
+    <div class="gh-handle"></div>
+    <div class="gh-title">⬆️ Upload Song List</div>
+    <div class="gh-sub">Select your new <b>songs-data.js</b> file — it will be pushed directly to your GitHub repo and singers will get it on their next refresh.</div>
+
+    <div id="gh-upload-not-configured" style="display:none;background:rgba(251,133,0,0.1);border:1px solid rgba(251,133,0,0.3);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--orange)">
+      ⚠️ GitHub credentials not set up yet. Tap <b>⚙️</b> in the header to configure.
+    </div>
+
+    <div id="gh-upload-ready">
+      <div class="gh-label">Select File</div>
+      <input type="file" id="gh-file-input" accept=".js" style="display:none" onchange="onFileSelected(event)">
+      <button class="btn btn-blue" onclick="document.getElementById('gh-file-input').click()" style="width:100%;padding:16px;font-size:15px;margin-bottom:10px">📂 Choose songs-data.js</button>
+      <div id="gh-file-name" style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;min-height:18px"></div>
+
+      <div id="gh-upload-also-json" style="display:none">
+        <div class="gh-label">Also upload songs.json?</div>
+        <input type="file" id="gh-json-input" accept=".json" style="display:none" onchange="onJsonSelected(event)">
+        <button class="btn btn-ghost" onclick="document.getElementById('gh-json-input').click()" style="width:100%;padding:12px;font-size:13px;margin-bottom:6px">📂 Choose songs.json (optional)</button>
+        <div id="gh-json-name" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;min-height:16px"></div>
+      </div>
+
+      <button class="gh-save-btn" id="gh-push-btn" onclick="pushToGitHub()" style="display:none">⬆️ PUSH TO GITHUB</button>
+
+      <div class="gh-upload-status" id="gh-upload-status">
+        <div class="gh-progress-bar"><div class="gh-progress-fill" id="gh-progress-fill"></div></div>
+        <div class="gh-progress-msg" id="gh-progress-msg">Preparing…</div>
+      </div>
+    </div>
+
+    <button class="gh-cancel-btn" onclick="closeUpload()">Close</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -304,6 +444,31 @@ function recordSung(item) {
 // INIT
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  // Offline detection
+  const djBanner = document.getElementById('dj-offline-banner');
+  function setDJOffline(isOffline) {
+    if (isOffline) {
+      djBanner.classList.add('show');
+    } else {
+      djBanner.classList.remove('show');
+    }
+  }
+  window.addEventListener('offline', () => setDJOffline(true));
+  window.addEventListener('online',  () => { setDJOffline(false); fetchQueue(); });
+  setDJOffline(!navigator.onLine);
+
+  // Set upload button state based on whether credentials exist
+  updateUploadBtnState();
+
+  // Show initial song list stats in Rules tab
+  setTimeout(() => {
+    const count = (typeof window.SONGS_DATA !== 'undefined') ? window.SONGS_DATA.length : 'N/A';
+    const countEl = document.getElementById('songlist-count');
+    const lastEl  = document.getElementById('songlist-last-loaded');
+    if (countEl) countEl.textContent = typeof count === 'number' ? count.toLocaleString() : count;
+    if (lastEl)  lastEl.textContent  = 'Loaded with page';
+  }, 500);
+
   if (FIREBASE_URL.includes('YOUR-PROJECT')) {
     document.getElementById('config-banner').style.display = 'block';
     loadDemoData();
@@ -380,6 +545,239 @@ async function fetchQueue() {
 async function refreshQueue() {
   await fetchQueue();
   showToast('⟳ Queue refreshed');
+}
+
+// ══════════════════════════════════════════
+// GITHUB CREDENTIALS — stored in localStorage on this device only
+// ══════════════════════════════════════════
+const KEY_GH_USER   = 'sk_gh_username';
+const KEY_GH_REPO   = 'sk_gh_repo';
+const KEY_GH_BRANCH = 'sk_gh_branch';
+const KEY_GH_TOKEN  = 'sk_gh_token';
+
+function getGHCreds() {
+  return {
+    username : localStorage.getItem(KEY_GH_USER)   || '',
+    repo     : localStorage.getItem(KEY_GH_REPO)   || '',
+    branch   : localStorage.getItem(KEY_GH_BRANCH) || 'main',
+    token    : localStorage.getItem(KEY_GH_TOKEN)  || '',
+  };
+}
+
+function ghConfigured() {
+  const g = getGHCreds();
+  return g.username && g.repo && g.token;
+}
+
+// ── SETUP SHEET ──
+function openGHSetup() {
+  const g = getGHCreds();
+  document.getElementById('gh-username').value = g.username;
+  document.getElementById('gh-repo').value     = g.repo;
+  document.getElementById('gh-branch').value   = g.branch || 'main';
+  document.getElementById('gh-token').value    = g.token;
+  document.getElementById('gh-saved-indicator').style.display = ghConfigured() ? 'block' : 'none';
+  document.getElementById('gh-setup-overlay').classList.add('open');
+}
+
+function closeGHSetup() {
+  document.getElementById('gh-setup-overlay').classList.remove('open');
+}
+
+function saveGHSetup() {
+  const u = document.getElementById('gh-username').value.trim();
+  const r = document.getElementById('gh-repo').value.trim();
+  const b = document.getElementById('gh-branch').value.trim() || 'main';
+  const t = document.getElementById('gh-token').value.trim();
+  if (!u || !r || !t) { showToast('⚠️ Fill in username, repo and token'); return; }
+  localStorage.setItem(KEY_GH_USER,   u);
+  localStorage.setItem(KEY_GH_REPO,   r);
+  localStorage.setItem(KEY_GH_BRANCH, b);
+  localStorage.setItem(KEY_GH_TOKEN,  t);
+  showToast('✓ GitHub credentials saved');
+  closeGHSetup();
+  updateUploadBtnState();
+}
+
+function clearGHSetup() {
+  if (!confirm('Clear all saved GitHub credentials from this device?')) return;
+  [KEY_GH_USER, KEY_GH_REPO, KEY_GH_BRANCH, KEY_GH_TOKEN].forEach(k => localStorage.removeItem(k));
+  document.getElementById('gh-username').value = '';
+  document.getElementById('gh-repo').value     = '';
+  document.getElementById('gh-branch').value   = 'main';
+  document.getElementById('gh-token').value    = '';
+  document.getElementById('gh-saved-indicator').style.display = 'none';
+  showToast('🗑 Credentials cleared');
+  updateUploadBtnState();
+}
+
+function updateUploadBtnState() {
+  const btn = document.getElementById('upload-btn');
+  if (btn) {
+    btn.style.opacity = ghConfigured() ? '1' : '0.5';
+    btn.title = ghConfigured() ? 'Upload new song list to GitHub' : 'GitHub not configured — tap ⚙️ first';
+  }
+}
+
+// ── UPLOAD SHEET ──
+let selectedJSFile   = null;
+let selectedJSONFile = null;
+
+function openUpload() {
+  selectedJSFile   = null;
+  selectedJSONFile = null;
+  document.getElementById('gh-file-name').textContent  = '';
+  document.getElementById('gh-json-name').textContent  = '';
+  document.getElementById('gh-push-btn').style.display = 'none';
+  document.getElementById('gh-upload-status').classList.remove('show');
+  document.getElementById('gh-progress-fill').style.width = '0%';
+  document.getElementById('gh-progress-msg').textContent  = '';
+  document.getElementById('gh-progress-msg').className    = 'gh-progress-msg';
+  document.getElementById('gh-upload-also-json').style.display = 'none';
+  const notConfigured = document.getElementById('gh-upload-not-configured');
+  const ready         = document.getElementById('gh-upload-ready');
+  if (ghConfigured()) {
+    notConfigured.style.display = 'none';
+    ready.style.display = 'block';
+  } else {
+    notConfigured.style.display = 'block';
+    ready.style.display = 'none';
+  }
+  document.getElementById('gh-upload-overlay').classList.add('open');
+}
+
+function closeUpload() {
+  document.getElementById('gh-upload-overlay').classList.remove('open');
+}
+
+function onFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedJSFile = file;
+  document.getElementById('gh-file-name').textContent = '📄 ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+  document.getElementById('gh-push-btn').style.display = 'block';
+  document.getElementById('gh-upload-also-json').style.display = 'block';
+}
+
+function onJsonSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedJSONFile = file;
+  document.getElementById('gh-json-name').textContent = '📄 ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+}
+
+async function pushToGitHub() {
+  if (!selectedJSFile) { showToast('⚠️ No file selected'); return; }
+  const g = getGHCreds();
+  if (!ghConfigured()) { showToast('⚠️ GitHub not configured — tap ⚙️'); return; }
+
+  const statusEl  = document.getElementById('gh-upload-status');
+  const fillEl    = document.getElementById('gh-progress-fill');
+  const msgEl     = document.getElementById('gh-progress-msg');
+  const pushBtn   = document.getElementById('gh-push-btn');
+
+  statusEl.classList.add('show');
+  pushBtn.disabled = true;
+
+  const setProgress = (pct, msg, type) => {
+    fillEl.style.width   = pct + '%';
+    msgEl.textContent    = msg;
+    msgEl.className      = 'gh-progress-msg' + (type ? ' ' + type : '');
+  };
+
+  const apiBase = `https://api.github.com/repos/${g.username}/${g.repo}/contents/`;
+  const headers = {
+    'Authorization': 'Bearer ' + g.token,
+    'Accept':        'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type':  'application/json',
+  };
+
+  async function pushFile(file, filename, progressStart, progressEnd) {
+    setProgress(progressStart, `Reading ${filename}…`);
+    const base64 = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload  = () => res(reader.result.split(',')[1]);
+      reader.onerror = () => rej(new Error('File read error'));
+      reader.readAsDataURL(file);
+    });
+
+    setProgress(progressStart + (progressEnd - progressStart) * 0.3, `Checking current ${filename} on GitHub…`);
+
+    // Get current file SHA (needed for update)
+    let sha = null;
+    try {
+      const r = await fetch(apiBase + filename + '?ref=' + g.branch, { headers });
+      if (r.ok) { const d = await r.json(); sha = d.sha; }
+    } catch(e) {}
+
+    setProgress(progressStart + (progressEnd - progressStart) * 0.6, `Uploading ${filename}…`);
+
+    const body = {
+      message: `Update ${filename} via DJ Console — ${new Date().toLocaleDateString('en-ZA')}`,
+      content: base64,
+      branch:  g.branch,
+    };
+    if (sha) body.sha = sha;
+
+    const resp = await fetch(apiBase + filename, {
+      method:  'PUT',
+      headers: headers,
+      body:    JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+    setProgress(progressEnd, `${filename} uploaded ✓`);
+  }
+
+  try {
+    await pushFile(selectedJSFile, 'songs-data.js', 5, selectedJSONFile ? 50 : 90);
+    if (selectedJSONFile) {
+      await pushFile(selectedJSONFile, 'songs.json', 55, 90);
+    }
+    setProgress(100, '✅ Upload complete! Tap 🎵 ↻ Song List to reload.', 'ok');
+    showToast('✅ Song list pushed to GitHub');
+    pushBtn.disabled = false;
+  } catch(err) {
+    setProgress(100, '❌ Upload failed: ' + err.message, 'err');
+    showToast('❌ Upload failed — check credentials');
+    pushBtn.disabled = false;
+    console.error('GitHub upload error:', err);
+  }
+}
+
+// ══════════════════════════════════════════
+// SONG LIST REFRESH
+// ══════════════════════════════════════════
+function refreshSongList() {
+  const btn = document.getElementById('songlist-btn');
+  if (btn) btn.classList.add('spinning');
+
+  // Remove old script tag if present, then reload with cache-busting query
+  const old = document.getElementById('songs-data-script');
+  if (old) old.remove();
+
+  const script = document.createElement('script');
+  script.id  = 'songs-data-script';
+  script.src = 'songs-data.js?v=' + Date.now(); // cache-buster
+  script.onload = () => {
+    if (btn) btn.classList.remove('spinning');
+    const count = (typeof window.SONGS_DATA !== 'undefined') ? window.SONGS_DATA.length : '?';
+    const now   = new Date().toLocaleTimeString();
+    const countEl = document.getElementById('songlist-count');
+    const lastEl  = document.getElementById('songlist-last-loaded');
+    if (countEl) countEl.textContent = count.toLocaleString ? count.toLocaleString() : count;
+    if (lastEl)  lastEl.textContent  = now;
+    showToast('🎵 Song list reloaded — ' + (count.toLocaleString ? count.toLocaleString() : count) + ' songs');
+  };
+  script.onerror = () => {
+    if (btn) btn.classList.remove('spinning');
+    showToast('⚠️ Could not reload songs-data.js — check file is on server');
+  };
+  document.head.appendChild(script);
 }
 
 // ══════════════════════════════════════════

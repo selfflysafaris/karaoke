@@ -117,8 +117,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 /* OFFLINE BANNER */
-.offline{display:none;background:#2a1a00;border-bottom:1px solid #5c3d00;color:var(--gold);font-size:13px;padding:8px 16px;text-align:center;font-weight:500}
+.offline{display:none;background:#2a0008;border-bottom:2px solid #8b0000;color:#ff6b6b;font-size:13px;padding:10px 16px;text-align:center;font-weight:600;z-index:999;position:relative}
 .offline.show{display:block}
+.offline-title{font-size:14px;font-weight:700;margin-bottom:3px;letter-spacing:.3px}
+.offline-sub{font-size:12px;color:rgba(255,107,107,0.8);font-weight:500;line-height:1.5}
 
 /* LOADING */
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px}
@@ -200,7 +202,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 </head>
 <body>
 
-<div class="offline" id="offline-banner">📡 Offline — using cached song list</div>
+<div class="offline" id="offline-banner">
+  <div class="offline-title">🔴 No Internet Connection</div>
+  <div class="offline-sub">You can still browse songs — but requests can't reach the DJ.<br>Walk up to the DJ booth to request your song in person.</div>
+</div>
 
 <header class="header">
   <div class="hrow">
@@ -249,7 +254,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
     <div class="msub">Your name is pre-filled — change it if a friend is singing</div>
     <div class="msong" id="msong"></div>
     <input class="ninput" type="text" id="req-name" placeholder="Your name…" autocomplete="off">
-    <button class="subbtn" onclick="submitRequest()">SUBMIT REQUEST</button>
+    <div id="subbtn-wrap">
+      <button class="subbtn" onclick="submitRequest()">SUBMIT REQUEST</button>
+    </div>
+    <div id="submit-offline-note" style="display:none;background:rgba(139,0,0,0.2);border:1px solid #8b0000;border-radius:12px;padding:14px 16px;text-align:center;margin-bottom:4px">
+      <div style="font-size:14px;font-weight:700;color:#ff6b6b;margin-bottom:4px">📵 You're offline</div>
+      <div style="font-size:13px;color:rgba(255,107,107,0.8);line-height:1.5">Requests can't reach the DJ right now.<br>Please walk up to the DJ booth to request<br><strong style="color:#ff6b6b">{{SONG}}</strong> in person.</div>
+    </div>
     <button class="canbtn" onclick="closeReqModal()">Cancel</button>
   </div>
 </div>
@@ -363,9 +374,25 @@ async function init() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
   const banner = document.getElementById('offline-banner');
-  window.addEventListener('offline', () => banner.classList.add('show'));
-  window.addEventListener('online',  () => banner.classList.remove('show'));
-  if (!navigator.onLine) banner.classList.add('show');
+  function setOfflineState(isOffline) {
+    if (isOffline) {
+      banner.classList.add('show');
+      // Disable submit button with offline message
+      const sub = document.getElementById('subbtn-wrap');
+      if (sub) sub.style.display = 'none';
+      const offlineNote = document.getElementById('submit-offline-note');
+      if (offlineNote) offlineNote.style.display = 'block';
+    } else {
+      banner.classList.remove('show');
+      const sub = document.getElementById('subbtn-wrap');
+      if (sub) sub.style.display = 'block';
+      const offlineNote = document.getElementById('submit-offline-note');
+      if (offlineNote) offlineNote.style.display = 'none';
+    }
+  }
+  window.addEventListener('offline', () => setOfflineState(true));
+  window.addEventListener('online',  () => setOfflineState(false));
+  setOfflineState(!navigator.onLine);
 
   // Load songs from embedded JS — no fetch needed
   if (typeof window.SONGS_DATA !== 'undefined' && window.SONGS_DATA.length) {
@@ -596,6 +623,11 @@ function openReqModal() {
   if (!selected) return;
   document.getElementById('msong').innerHTML =
     '<strong>' + esc(selected.title) + '</strong><span>' + esc(selected.artist) + '</span>';
+  // Populate song name in offline note
+  const offlineNote = document.getElementById('submit-offline-note');
+  if (offlineNote) {
+    offlineNote.innerHTML = offlineNote.innerHTML.replace('{{SONG}}', esc(selected.title));
+  }
   document.getElementById('req-name').value = guestName;
   document.getElementById('req-modal').classList.add('open');
   setTimeout(() => document.getElementById('req-name').focus(), 350);
