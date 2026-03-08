@@ -46,7 +46,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .si:active{background:rgba(230,57,70,0.12)}
 .si.sel{background:rgba(230,57,70,0.18);border-color:var(--accent)}
 .st{flex:1;line-height:1.35}
-.st-artist{font-size:.78em;color:var(--accent);font-weight:700;display:block;margin-top:1px;letter-spacing:.06em}
 .st em{color:var(--gold);font-style:normal;font-weight:700}
 .schk{color:var(--accent);font-size:20px;flex-shrink:0}
 .sz-xl .alabel{font-size:28px}.sz-xl .st{font-size:22px}
@@ -256,9 +255,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 </header>
 
 <div class="rbar" id="rbar"></div>
-<div id="list" class="list">
-  <div class="loading"><div class="spin"></div><p style="color:var(--muted);font-size:14px">Loading songs…</p></div>
-</div>
+<div id="list" class="list"></div>
+<div id="load-indicator" style="display:none;text-align:center;padding:10px 16px 20px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace"></div>
 
 <!-- A–Z INDEX -->
 <div class="az-index hidden" id="az-index"></div>
@@ -650,25 +648,15 @@ function clearSearch() {
   document.getElementById('search').focus();
 }
 
-function jumpToLetter(letter) {
-  const target = document.querySelector('#list .ag[data-az="' + letter + '"]');
-  if (target) {
-    // Account for sticky header height
-    const headerH = document.querySelector('.header').offsetHeight;
-    const top = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
-    window.scrollTo({ top, behavior: 'smooth' });
-    // Flash the letter briefly
-    const btn = document.querySelector('.az-letter[data-letter="' + letter + '"]');
-    if (btn) {
-      btn.classList.add('az-active');
-      setTimeout(() => btn.classList.remove('az-active'), 400);
-    }
-  }
-}
+// ══════════════════════════════════════════
+// RENDER SONG LIST — infinite scroll + A–Z
+// ══════════════════════════════════════════
+const BATCH = 300;
+let renderedCount = 0;       // how many songs rendered so far
+let currentList   = [];      // the active filtered list
+let currentQ      = '';      // active search query
+let scrollObserver = null;   // IntersectionObserver for sentinel
 
-// ══════════════════════════════════════════
-// RENDER SONG LIST
-// ══════════════════════════════════════════
 function sizeClass(n) {
   if (n <= 5)   return 'sz-xl';
   if (n <= 20)  return 'sz-lg';
@@ -688,57 +676,156 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function renderList(list, q) {
-  const el = document.getElementById('list');
-  if (!list.length) {
-    el.className = 'list';
-    el.innerHTML = '<div class="empty"><div class="ico">🔍</div><p>No songs found.<br>Try a different search.</p></div>';
-    return;
-  }
-  const isFull   = !q && list === songs;
-  const toRender = isFull ? list.slice(0, 300) : list;
-  el.className   = 'list ' + sizeClass(list.length);
-
+// Build artist groups from a slice of the list
+function buildArtistGroups(slice, q) {
   const byArtist = {}, artistOrder = [];
-  toRender.forEach(s => {
+  slice.forEach(s => {
     if (!byArtist[s.artist]) { byArtist[s.artist] = []; artistOrder.push(s.artist); }
     byArtist[s.artist].push(s);
   });
-
-  // Build A–Z index (browse mode only — no query active)
-  const azEl = document.getElementById('az-index');
-  if (isFull) {
-    const letters = [...new Set(artistOrder.map(a => a[0].toUpperCase()))];
-    azEl.innerHTML = letters.map(l =>
-      '<div class="az-letter" data-letter="' + l + '" onclick="jumpToLetter(\'' + l + '\')">' + l + '</div>'
-    ).join('');
-    azEl.classList.remove('hidden');
-  } else {
-    azEl.classList.add('hidden');
-  }
-
   let html = '';
   artistOrder.forEach(artist => {
-    const firstChar = artist[0].toUpperCase();
-    html += '<div class="ag" data-az="' + esc(firstChar) + '"><div class="alabel">' + hl(artist, q) + '</div>';
+    html += '<div class="ag" data-az="' + esc(artist[0].toUpperCase()) + '"><div class="alabel">' + hl(artist, q) + '</div>';
     byArtist[artist].forEach(s => {
       const sel = selected && selected.artist === s.artist && selected.title === s.title;
       html += '<div class="si' + (sel ? ' sel' : '') + '"' +
         ' data-artist="' + esc(s.artist) + '"' +
         ' data-title="'  + esc(s.title)  + '">' +
-        '<div class="st"><span>' + hl(s.title, q) + '</span>' +
-        '<span class="st-artist">' + hl(s.artist, q) + '</span></div>' +
+        '<div class="st">' + hl(s.title, q) + '</div>' +
         (sel ? '<div class="schk">✓</div>' : '') +
         '</div>';
     });
     html += '</div>';
   });
+  return html;
+}
 
-  if (isFull && list.length > 300) {
-    html += '<div class="empty" style="padding:30px 20px"><p style="font-size:14px">Showing first 300 of ' +
-      list.length.toLocaleString() + ' songs.<br><b style="color:var(--gold)">Search above to find any song.</b></p></div>';
+// A–Z strip — built from the FULL list regardless of batch
+function buildAZIndex(list) {
+  const azEl = document.getElementById('az-index');
+  if (!azEl) return;
+  if (!list || !list.length) { azEl.classList.add('hidden'); return; }
+  const letters = [...new Set(list.map(s => s.artist[0].toUpperCase()))].sort();
+  azEl.innerHTML = letters.map(l =>
+    '<div class="az-letter" data-letter="' + l + '" onclick="jumpToLetter(\'' + l + '\')">' + l + '</div>'
+  ).join('');
+  azEl.classList.remove('hidden');
+}
+
+// Append the next batch of songs to the list
+function appendBatch() {
+  const el = document.getElementById('list');
+  if (renderedCount >= currentList.length) { removeSentinel(); return; }
+  const slice = currentList.slice(renderedCount, renderedCount + BATCH);
+  // Remove sentinel before appending, re-add after
+  removeSentinel();
+  el.insertAdjacentHTML('beforeend', buildArtistGroups(slice, currentQ));
+  renderedCount += slice.length;
+  updateLoadingIndicator();
+  if (renderedCount < currentList.length) addSentinel();
+}
+
+function addSentinel() {
+  removeSentinel();
+  const el = document.getElementById('list');
+  const sentinel = document.createElement('div');
+  sentinel.id = 'scroll-sentinel';
+  sentinel.style.cssText = 'height:1px;margin-bottom:8px';
+  el.appendChild(sentinel);
+  if (scrollObserver) scrollObserver.disconnect();
+  scrollObserver = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) appendBatch();
+  }, { rootMargin: '200px' });
+  scrollObserver.observe(sentinel);
+}
+
+function removeSentinel() {
+  if (scrollObserver) { scrollObserver.disconnect(); scrollObserver = null; }
+  const s = document.getElementById('scroll-sentinel');
+  if (s) s.remove();
+}
+
+function updateLoadingIndicator() {
+  const ind = document.getElementById('load-indicator');
+  if (!ind) return;
+  const remaining = currentList.length - renderedCount;
+  if (remaining > 0) {
+    ind.textContent = 'Showing ' + renderedCount.toLocaleString() + ' of ' + currentList.length.toLocaleString() + ' songs — scroll for more';
+    ind.style.display = 'block';
+  } else {
+    ind.textContent = 'All ' + currentList.length.toLocaleString() + ' songs shown';
+    ind.style.display = 'block';
+    setTimeout(() => { if (ind) ind.style.display = 'none'; }, 2000);
   }
-  el.innerHTML = html;
+}
+
+function renderList(list, q) {
+  const el = document.getElementById('list');
+  // Teardown previous scroll observer
+  removeSentinel();
+  currentList   = list;
+  currentQ      = q;
+  renderedCount = 0;
+
+  if (!list.length) {
+    el.className = 'list';
+    el.innerHTML = '<div class="empty"><div class="ico">🔍</div><p>No songs found.<br>Try a different search.</p></div>';
+    document.getElementById('az-index') && document.getElementById('az-index').classList.add('hidden');
+    return;
+  }
+
+  el.className = 'list ' + sizeClass(list.length);
+  el.innerHTML = '';  // clear
+
+  // A–Z always built from full list
+  const isBrowse = !q;
+  if (isBrowse) {
+    buildAZIndex(list);
+  } else {
+    const azEl = document.getElementById('az-index');
+    if (azEl) azEl.classList.add('hidden');
+  }
+
+  // Render first batch
+  appendBatch();
+}
+
+// Jump to letter — loads enough batches to expose the target artist, then scrolls
+function jumpToLetter(letter) {
+  // Flash the button
+  const btn = document.querySelector('.az-letter[data-letter="' + letter + '"]');
+  if (btn) {
+    btn.classList.add('az-active');
+    setTimeout(() => btn.classList.remove('az-active'), 400);
+  }
+
+  // Check if target already in DOM
+  const tryScroll = () => {
+    const target = document.querySelector('#list .ag[data-az="' + letter + '"]');
+    if (target) {
+      const headerH = document.querySelector('.header').offsetHeight;
+      const top = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
+      window.scrollTo({ top, behavior: 'smooth' });
+      return true;
+    }
+    return false;
+  };
+
+  if (tryScroll()) return;
+
+  // Artist not yet rendered — load batches until it appears
+  const loadUntilFound = () => {
+    if (renderedCount >= currentList.length) { tryScroll(); return; }
+    // Check if the letter exists at all in the full list
+    const exists = currentList.some(s => s.artist[0].toUpperCase() === letter);
+    if (!exists) return;
+    appendBatch();
+    // Give DOM time to paint then try again
+    requestAnimationFrame(() => {
+      if (!tryScroll()) loadUntilFound();
+    });
+  };
+  loadUntilFound();
 }
 
 // ══════════════════════════════════════════
