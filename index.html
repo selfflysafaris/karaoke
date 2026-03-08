@@ -83,6 +83,25 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .subbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:18px;font-size:20px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 24px rgba(230,57,70,0.4)}
 .canbtn{width:100%;background:none;border:none;color:var(--muted);font-size:15px;padding:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px}
 
+/* PIN GATE */
+.pin-gate{position:fixed;inset:0;background:var(--bg);z-index:400;display:none;align-items:center;justify-content:center;padding:24px}
+.pin-gate.show{display:flex}
+.pin-box{width:100%;max-width:360px;text-align:center}
+.pin-ico{font-size:52px;margin-bottom:16px}
+.pin-title{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;margin-bottom:8px}
+.pin-sub{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:28px}
+.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:background .15s,border-color .15s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-dot.error{background:var(--accent);border-color:var(--accent);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto 16px}
+.pin-key{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:18px 10px;font-size:24px;font-family:'DM Mono',monospace;color:var(--text);cursor:pointer;transition:background .1s,transform .1s;-webkit-tap-highlight-color:transparent;user-select:none}
+.pin-key:active{background:rgba(230,57,70,0.2);border-color:var(--accent);transform:scale(.95)}
+.pin-key.del{font-size:18px;color:var(--muted)}
+.pin-key.zero{grid-column:2}
+.pin-error{font-size:13px;color:var(--accent);font-weight:600;min-height:20px;margin-top:4px}
+
 /* WELCOME SCREEN */
 .welcome{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:300;display:none;align-items:flex-end}
 .welcome.show{display:flex}
@@ -265,6 +284,35 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
   </div>
 </div>
 
+<!-- PIN GATE -->
+<div class="pin-gate" id="pin-gate">
+  <div class="pin-box">
+    <div class="pin-ico">🔒</div>
+    <div class="pin-title">Enter Venue PIN</div>
+    <div class="pin-sub">Ask your DJ or venue host<br>for tonight's 4-digit code</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key zero" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinDel()">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+</div>
+
 <!-- WELCOME / NAME SCREEN -->
 <div class="welcome" id="welcome">
   <div class="wsheet">
@@ -363,9 +411,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 const FIREBASE   = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
 const STORAGE_KEY     = 'sk_singer_name';
 const STORAGE_HOWTO   = 'sk_howto_seen';
+const SESSION_PIN_KEY = 'sk_pin_verified';
 
 let songs = [], filtered = [], selected = null, guestName = '';
 let searchTimer = null;
+let pinEntry = '';
 
 // ══════════════════════════════════════════
 // INIT
@@ -418,11 +468,79 @@ async function init() {
   document.getElementById('welcome-name').addEventListener('keydown', e => { if(e.key==='Enter') confirmWelcomeName(); });
   document.getElementById('req-name').addEventListener('keydown',     e => { if(e.key==='Enter') submitRequest(); });
 
-  // Show how-to first time ever, then welcome
+  // Check PIN gate before showing welcome/howto
+  await checkPINGate();
+}
+
+// ══════════════════════════════════════════
+// PIN GATE
+// ══════════════════════════════════════════
+async function checkPINGate() {
+  // Already verified this session?
+  if (sessionStorage.getItem(SESSION_PIN_KEY) === '1') {
+    proceedAfterPIN();
+    return;
+  }
+  // Check if a PIN is set in Firebase
+  try {
+    const r   = await fetch(FIREBASE + '/config/pin.json');
+    const pin = await r.json();
+    if (pin && String(pin).length === 4) {
+      // PIN is active — show gate (store as string regardless of Firebase type)
+      window._venuePin = String(pin);
+      pinEntry = '';
+      updatePinDots(false);
+      document.getElementById('pin-error').textContent = '';
+      document.getElementById('pin-gate').classList.add('show');
+      return;
+    }
+  } catch(e) {}
+  // No PIN or fetch failed — proceed freely
+  proceedAfterPIN();
+}
+
+function proceedAfterPIN() {
+  document.getElementById('pin-gate').classList.remove('show');
   if (!localStorage.getItem(STORAGE_HOWTO)) {
-    showHowTo(true); // true = auto-show (will open welcome after dismiss)
+    showHowTo(true);
   } else {
     showWelcome();
+  }
+}
+
+function pinKey(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updatePinDots();
+  if (pinEntry.length === 4) validatePIN();
+}
+
+function pinDel() {
+  pinEntry = pinEntry.slice(0, -1);
+  document.getElementById('pin-error').textContent = '';
+  updatePinDots(false);
+}
+
+function updatePinDots(error) {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    dot.classList.toggle('filled', i < pinEntry.length);
+    dot.classList.toggle('error', !!error);
+  }
+}
+
+function validatePIN() {
+  if (pinEntry === window._venuePin) {
+    sessionStorage.setItem(SESSION_PIN_KEY, '1');
+    proceedAfterPIN();
+  } else {
+    updatePinDots(true);
+    document.getElementById('pin-error').textContent = 'Incorrect PIN — try again';
+    setTimeout(() => {
+      pinEntry = '';
+      updatePinDots(false);
+      document.getElementById('pin-error').textContent = '';
+    }, 900);
   }
 }
 
@@ -722,10 +840,10 @@ function renderQueueOnCard(items, myTitle, myArtist, mySinger) {
   const listEl  = document.getElementById('pos-queue-list');
   section.style.display = 'block';
 
-  // Show all items, highlight the user's own
+  // Highlight ALL songs belonging to this singer
   let html = '';
   items.forEach((item, idx) => {
-    const isMine = item.title === myTitle && item.artist === myArtist && item.singer === mySinger;
+    const isMine = item.singer === mySinger;
     html += `<div class="pq-row">
       <div class="pq-num ${isMine ? 'mine' : 'other'}">${idx + 1}</div>
       <div class="pq-info">
@@ -772,17 +890,21 @@ function startPositionPolling(fbId, title, artist, singer) {
       if (data.position != null) {
         // Also fetch the full queue to show all waiting songs
         let queueItems = null;
+        let earliestPos = data.position;
         try {
-          const qr   = await fetch(FIREBASE + '/requests.json');
+          const qr    = await fetch(FIREBASE + '/requests.json');
           const qdata = await qr.json();
           if (qdata) {
             queueItems = Object.values(qdata)
               .filter(i => i.status === 'waiting' && i.position != null)
               .sort((a, b) => a.position - b.position);
+            // Show earliest (lowest) position among all of this singer's songs
+            const mySongs = queueItems.filter(i => i.singer === singer);
+            if (mySongs.length > 0) earliestPos = mySongs[0].position;
           }
         } catch(e) {}
 
-        showPosCard(title, artist, singer, data.position, data.queueTotal || '?', queueItems);
+        showPosCard(title, artist, singer, earliestPos, data.queueTotal || '?', queueItems);
         document.getElementById('pos-phase').textContent =
           phase === 1 ? 'Updating every 5s' : 'Updating every 30s';
       }
@@ -908,6 +1030,7 @@ async function checkMyPosition() {
       return;
     }
     let queueItems = null;
+    let earliestPos = data.position || null;
     try {
       const qr    = await fetch(FIREBASE + '/requests.json');
       const qdata = await qr.json();
@@ -915,9 +1038,13 @@ async function checkMyPosition() {
         queueItems = Object.values(qdata)
           .filter(i => i.status === 'waiting' && i.position != null)
           .sort((a, b) => a.position - b.position);
+        // Show earliest (lowest) position among all of this singer's songs
+        const mySingerName = document.getElementById('pos-singer').textContent.replace('🎤 ','');
+        const mySongs = queueItems.filter(i => i.singer === mySingerName);
+        if (mySongs.length > 0) earliestPos = mySongs[0].position;
       }
     } catch(e) {}
-    const pos   = data.position   || null;
+    const pos   = earliestPos;
     const total = data.queueTotal || '?';
     showPosCard(
       document.getElementById('pos-song-title').textContent,
