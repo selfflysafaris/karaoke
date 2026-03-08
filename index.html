@@ -263,7 +263,9 @@ function confirmWelcomeName() {
   guestName = name;
   localStorage.setItem(STORAGE_KEY, name); // persist for future visits
   document.getElementById('welcome').classList.remove('show');
-  renderPrompt();
+  filtered = songs; // default: show all songs
+  renderList(songs, '');
+  document.getElementById('rbar').innerHTML = '<b>' + songs.length.toLocaleString() + '</b> songs — search to filter';
 }
 
 // Returning user wants to sing under a different name
@@ -285,9 +287,9 @@ function switchWelcomeName() {
 function doSearch() {
   const q = document.getElementById('search').value.trim().toLowerCase();
   if (!q) {
-    filtered = [];
-    renderPrompt();
-    document.getElementById('rbar').innerHTML = '';
+    filtered = songs;
+    renderList(songs, '');
+    document.getElementById('rbar').innerHTML = '<b>' + songs.length.toLocaleString() + '</b> songs — search to filter';
     return;
   }
   filtered = songs.filter(s =>
@@ -301,9 +303,9 @@ function doSearch() {
 
 function clearSearch() {
   document.getElementById('search').value = '';
-  filtered = [];
-  renderPrompt();
-  document.getElementById('rbar').innerHTML = '';
+  filtered = songs;
+  renderList(songs, '');
+  document.getElementById('rbar').innerHTML = '<b>' + songs.length.toLocaleString() + '</b> songs — search to filter';
   document.getElementById('search').focus();
 }
 
@@ -342,12 +344,17 @@ function renderList(list, q) {
     return;
   }
 
+  // For the full unfiltered list, cap render at 300 for performance
+  // and show a prompt to search for more
+  const isFull = !q && list === songs;
+  const toRender = isFull ? list.slice(0, 300) : list;
+
   el.className = 'list ' + sizeClass(list.length);
 
-  // Group by artist, maintaining search-relevance order
+  // Group by artist
   const byArtist = {};
   const artistOrder = [];
-  list.forEach(s => {
+  toRender.forEach(s => {
     if (!byArtist[s.artist]) { byArtist[s.artist] = []; artistOrder.push(s.artist); }
     byArtist[s.artist].push(s);
   });
@@ -365,6 +372,12 @@ function renderList(list, q) {
     });
     html += '</div>';
   });
+
+  if (isFull && list.length > 300) {
+    html += '<div class="empty" style="padding:30px 20px"><p style="font-size:14px">Showing first 300 of ' +
+      list.length.toLocaleString() + ' songs.<br><b style="color:var(--gold)">Search above to find any song.</b></p></div>';
+  }
+
   el.innerHTML = html;
 }
 
@@ -377,7 +390,7 @@ function selectSong(artist, title) {
   document.getElementById('prev-artist').textContent = artist;
   document.getElementById('reqbar').classList.add('vis');
   const q = document.getElementById('search').value.trim().toLowerCase();
-  renderList(filtered.length ? filtered : [], q);
+  renderList(filtered, q); // filtered is always the current visible list
   setTimeout(() => {
     const el = document.querySelector('.si.sel');
     if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -431,7 +444,7 @@ async function submitRequest() {
   document.getElementById('reqbar').classList.remove('vis');
   selected = null;
   const q = document.getElementById('search').value.trim().toLowerCase();
-  if (q) renderList(filtered, q); else renderPrompt();
+  renderList(filtered, q);
   showToast('✅ Request sent! Good luck, ' + name + '! 🎤');
 }
 
