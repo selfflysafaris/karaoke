@@ -64,6 +64,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .gh-progress-msg.ok{color:var(--green)}
 .gh-progress-msg.err{color:var(--accent)}
 
+/* PIN HEADER DISPLAY */
+.pin-header-wrap{display:flex;align-items:center;gap:8px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:7px 14px;cursor:pointer;transition:border-color .2s;flex-shrink:0}
+.pin-header-wrap:hover{border-color:var(--gold)}
+.pin-header-wrap.active{border-color:rgba(255,209,102,0.5);background:rgba(255,209,102,0.07)}
+.pin-header-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;line-height:1}
+.pin-header-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:var(--gold);line-height:1;min-width:52px;text-align:center}
+.pin-header-val.none{font-size:13px;color:var(--muted);letter-spacing:0;font-family:'DM Sans',sans-serif;font-weight:500;min-width:auto}
+.pin-header-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.pin-header-status.active{background:rgba(6,214,160,0.15);color:var(--green);border:1px solid rgba(6,214,160,0.3)}
+.pin-header-status.off{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
+
 /* PIN MANAGEMENT */
 .pin-display{background:var(--card2);border:2px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .pin-value{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:8px;color:var(--gold);line-height:1}
@@ -203,6 +214,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   <div class="dj-badge">DJ</div>
   <div class="htitle">Karaoke Console</div>
   <div class="live-wrap"><div class="live-dot"></div><span class="live-label">LIVE</span></div>
+  <div class="pin-header-wrap" id="pin-header-wrap" onclick="switchTab('balance')" title="Click to manage PIN">
+    <div class="pin-header-label">VENUE PIN</div>
+    <div class="pin-header-val" id="pin-header-val">—</div>
+    <div class="pin-header-status off" id="pin-header-status">OFF</div>
+  </div>
   <div class="hright">
     <button class="btn btn-ghost" onclick="refreshQueue()">⟳ Refresh</button>
     <button class="btn btn-blue" id="songlist-btn" onclick="refreshSongList()" title="Reload songs-data.js from server">🎵 <span class="spin-ico">↻</span> Song List</button>
@@ -244,7 +260,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div class="stat-card"><div class="stat-label">Singers</div><div class="stat-val" id="s-singers">0</div></div>
       </div>
 
-      <div class="sec-title">SINGER HISTORY</div>
+      <div class="sec-title">IN QUEUE NOW</div>
+      <div class="stat-card" id="singer-board-wrap">
+        <div id="singer-board"><p style="font-size:13px;color:var(--muted)">No singers yet</p></div>
+      </div>
+
+      <div class="sec-title" style="margin-top:16px">SINGER HISTORY</div>
       <div id="singer-history">
         <p style="font-size:13px;color:var(--muted)">No songs sung yet tonight.</p>
       </div>
@@ -316,11 +337,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <button class="pin-set-btn" onclick="setPIN()">SET PIN</button>
       </div>
       <button class="pin-clear-btn" onclick="clearPIN()">🗑 Remove PIN (disable gate)</button>
-
-      <div class="sec-title" style="margin-top:20px">IN QUEUE NOW</div>
-      <div class="stat-card" id="singer-board-wrap">
-        <div id="singer-board"><p style="font-size:13px;color:var(--muted)">No singers yet</p></div>
-      </div>
     </div>
   </div>
 
@@ -898,16 +914,29 @@ async function loadPIN() {
 function updatePINDisplay(pin) {
   const dispEl   = document.getElementById('pin-display-val');
   const badgeEl  = document.getElementById('pin-status-badge');
+  const hdrVal   = document.getElementById('pin-header-val');
+  const hdrStat  = document.getElementById('pin-header-status');
+  const hdrWrap  = document.getElementById('pin-header-wrap');
   if (pin && String(pin).length === 4) {
     dispEl.textContent  = String(pin);
     dispEl.className    = 'pin-value';
     badgeEl.textContent = 'ACTIVE';
     badgeEl.className   = 'pin-status active';
+    hdrVal.textContent  = String(pin);
+    hdrVal.className    = 'pin-header-val';
+    hdrStat.textContent = 'ON';
+    hdrStat.className   = 'pin-header-status active';
+    hdrWrap.classList.add('active');
   } else {
     dispEl.textContent  = 'No PIN set';
     dispEl.className    = 'pin-value none';
     badgeEl.textContent = 'INACTIVE';
     badgeEl.className   = 'pin-status off';
+    hdrVal.textContent  = 'OFF';
+    hdrVal.className    = 'pin-header-val none';
+    hdrStat.textContent = 'OFF';
+    hdrStat.className   = 'pin-header-status off';
+    hdrWrap.classList.remove('active');
   }
 }
 
