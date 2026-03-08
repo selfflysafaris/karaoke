@@ -13,7 +13,7 @@ html,body{height:100%}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overscroll-behavior:none}
 
 /* HEADER */
-.header{position:sticky;top:0;z-index:50;background:rgba(8,8,15,0.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 16px 12px}
+.header{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(8,8,15,0.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 16px 12px}
 .hrow{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .mic{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;animation:ripple 2.5s ease-in-out infinite}
 @keyframes ripple{0%{box-shadow:0 0 0 0 var(--glow)}70%{box-shadow:0 0 0 14px rgba(230,57,70,0)}100%{box-shadow:0 0 0 0 rgba(230,57,70,0)}}
@@ -38,6 +38,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .rbar{padding:9px 16px 4px;font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;min-height:30px}
 .rbar b{color:var(--gold)}
 
+/* CONTENT OFFSET — set by JS to match actual header height */
+.content-wrap{padding-top:var(--header-h, 108px)}
+
 /* SONG LIST */
 .list{padding:0 12px 160px}
 .ag{margin-bottom:4px}
@@ -57,7 +60,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .empty p{font-size:16px;line-height:1.6}
 
 /* A–Z INDEX */
-.az-index{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;align-items:center;padding:4px 2px;gap:1px;pointer-events:all}
+.az-index{position:fixed;right:0;top:var(--header-h, 108px);bottom:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:6px 2px;gap:1px;pointer-events:all;overflow:hidden}
 .az-index.hidden{display:none}
 .az-letter{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);width:22px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:color .1s,background .1s}
 .az-letter:active,.az-letter.az-active{color:#fff;background:var(--accent)}
@@ -254,9 +257,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
   </div>
 </header>
 
+<div class="content-wrap">
 <div class="rbar" id="rbar"></div>
 <div id="list" class="list"></div>
 <div id="load-indicator" style="display:none;text-align:center;padding:10px 16px 20px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace"></div>
+</div>
 
 <!-- A–Z INDEX -->
 <div class="az-index hidden" id="az-index"></div>
@@ -430,6 +435,14 @@ let pinEntry = '';
 // INIT
 // ══════════════════════════════════════════
 async function init() {
+  // Measure header height and set CSS var so content clears it
+  function updateHeaderHeight() {
+    const h = document.querySelector('.header').offsetHeight;
+    document.documentElement.style.setProperty('--header-h', h + 'px');
+  }
+  updateHeaderHeight();
+  window.addEventListener('resize', updateHeaderHeight);
+
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
   const banner = document.getElementById('offline-banner');
@@ -456,11 +469,13 @@ async function init() {
   // Load songs from embedded JS — no fetch needed
   if (typeof window.SONGS_DATA !== 'undefined' && window.SONGS_DATA.length) {
     songs = window.SONGS_DATA;
+    buildGlobalSeqMap(songs);
     document.getElementById('hcount').textContent = songs.length.toLocaleString() + ' songs';
   } else {
     try {
       const r = await fetch('songs.json');
       songs = await r.json();
+      buildGlobalSeqMap(songs);
       document.getElementById('hcount').textContent = songs.length.toLocaleString() + ' songs';
     } catch(e) {
       document.getElementById('list').innerHTML =
@@ -656,7 +671,18 @@ let renderedCount  = 0;
 let currentList    = [];
 let currentQ       = '';
 let scrollObserver = null;
-let isAppending    = false;   // guard against concurrent appends
+let isAppending    = false;
+let startGroupIdx  = 0;
+
+// Pre-computed global sequence numbers keyed by "artist|||title"
+// Assigned once from the full songs array — never changes during scroll/jump
+let globalSeqMap = {};
+function buildGlobalSeqMap(songList) {
+  globalSeqMap = {};
+  songList.forEach((s, i) => {
+    globalSeqMap[s.artist + '|||' + s.title] = i + 1;
+  });
+}
 
 function sizeClass(n) {
   if (n <= 5)   return 'sz-xl';
@@ -689,13 +715,12 @@ function buildArtistIndex(list) {
   return order.map(a => ({ artist: a, songs: map.get(a) }));
 }
 
-// Render one artist group to HTML
-// globalOffset = the song number of the first song in this group across the full list
-function renderArtistGroup(group, q, globalOffset) {
+// Render one artist group — sequence number from pre-computed global map
+function renderArtistGroup(group, q) {
   const firstChar = group.artist[0].toUpperCase();
   let html = '<div class="ag" data-az="' + esc(firstChar) + '"><div class="alabel">' + hl(group.artist, q) + '</div>';
-  group.songs.forEach((s, i) => {
-    const seqNum = globalOffset + i + 1;
+  group.songs.forEach(s => {
+    const seqNum = globalSeqMap[s.artist + '|||' + s.title] || '';
     const sel = selected && selected.artist === s.artist && selected.title === s.title;
     html += '<div class="si' + (sel ? ' sel' : '') + '"' +
       ' data-artist="' + esc(s.artist) + '"' +
@@ -745,15 +770,12 @@ function appendBatch() {
   }
 
   let html = '';
-  let offset = renderedCount; // global song index before this batch
   for (let i = 0; i < groupsToAdd; i++) {
-    const group = currentGroups[renderedGroups + i];
-    html += renderArtistGroup(group, currentQ, offset);
-    offset += group.songs.length;
+    html += renderArtistGroup(currentGroups[renderedGroups + i], currentQ);
   }
   el.insertAdjacentHTML('beforeend', html);
   renderedGroups += groupsToAdd;
-  renderedCount = offset;
+  renderedCount = currentGroups.slice(0, renderedGroups).reduce((n, g) => n + g.songs.length, 0);
 
   updateLoadingIndicator();
   isAppending = false;
@@ -802,6 +824,7 @@ function renderList(list, q) {
   currentQ       = q;
   renderedCount  = 0;
   renderedGroups = 0;
+  startGroupIdx  = 0;
 
   if (!list.length) {
     el.className  = 'list';
@@ -827,7 +850,10 @@ function renderList(list, q) {
   appendBatch();
 }
 
-// Jump to letter — synchronously loads all groups up to target, then scrolls
+// Jump to letter:
+// Wipes current DOM, re-renders ~600 songs starting from the target letter,
+// then positions scroll at the top of that letter section.
+// Infinite scroll continues forward from there.
 function jumpToLetter(letter) {
   const btn = document.querySelector('.az-letter[data-letter="' + letter + '"]');
   if (btn) {
@@ -835,39 +861,32 @@ function jumpToLetter(letter) {
     setTimeout(() => btn.classList.remove('az-active'), 400);
   }
 
-  // Find the FIRST group starting with this letter
   const targetGroupIdx = currentGroups.findIndex(g => g.artist[0].toUpperCase() === letter);
   if (targetGroupIdx === -1) return;
 
-  // If not yet rendered, load synchronously up to and including target
-  if (targetGroupIdx >= renderedGroups) {
-    removeSentinel();
-    isAppending = true;
-    const el = document.getElementById('list');
-    let html   = '';
-    let offset = renderedCount;
-    while (renderedGroups <= targetGroupIdx) {
-      const group = currentGroups[renderedGroups];
-      html += renderArtistGroup(group, currentQ, offset);
-      offset += group.songs.length;
-      renderedGroups++;
-    }
-    renderedCount = offset;
-    el.insertAdjacentHTML('beforeend', html);
-    isAppending = false;
-    updateLoadingIndicator();
-    if (renderedGroups < currentGroups.length) addSentinel();
-  }
+  // Reset render state to start from target letter group
+  removeSentinel();
+  isAppending    = false;
+  renderedGroups = targetGroupIdx;
+  startGroupIdx  = targetGroupIdx;
+  renderedCount  = currentGroups.slice(0, targetGroupIdx).reduce((n, g) => n + g.songs.length, 0);
 
-  // Double rAF ensures browser has painted before we measure scroll position
+  // Wipe list and render two batches (~600 songs) from this letter forward
+  const el = document.getElementById('list');
+  el.innerHTML = '';
+  appendBatch();  // first ~300
+  appendBatch();  // next ~300
+
+  // Scroll to top so the letter section is immediately visible
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const targets = document.querySelectorAll('#list .ag[data-az="' + letter + '"]');
-    if (!targets.length) return;
-    // Always scroll to the FIRST occurrence of this letter
-    const target  = targets[0];
-    const headerH = document.querySelector('.header').offsetHeight;
-    const top     = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
-    window.scrollTo({ top, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setTimeout(() => {
+      const target  = el.querySelector('.ag[data-az="' + letter + '"]');
+      if (!target) return;
+      const headerH = document.querySelector('.header').offsetHeight;
+      const top     = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }, 60);
   }));
 }
 
@@ -978,7 +997,7 @@ async function submitRequest() {
   selected = null;
   renderList(filtered, document.getElementById('search').value.trim().toLowerCase());
 
-  showPosCard(submittedSong, submittedArtist, submittedName, null, null, null);
+  showPosCard(submittedSong, submittedArtist, submittedName, null, null, null, true);
 
   if (fbId && !FIREBASE.includes('YOUR-PROJECT')) {
     posReqId = fbId;
@@ -989,7 +1008,7 @@ async function submitRequest() {
 // ══════════════════════════════════════════
 // POSITION CARD
 // ══════════════════════════════════════════
-function showPosCard(title, artist, singer, position, total, queueItems) {
+function showPosCard(title, artist, singer, position, total, queueItems, forceOpen) {
   document.getElementById('pos-song-title').textContent  = title;
   document.getElementById('pos-song-artist').textContent = artist;
   document.getElementById('pos-singer').textContent      = '🎤 ' + singer;
@@ -999,10 +1018,9 @@ function showPosCard(title, artist, singer, position, total, queueItems) {
     if (numEl.textContent !== String(position)) {
       numEl.textContent = position;
       numEl.classList.remove('pop');
-      void numEl.offsetWidth; // reflow to restart animation
+      void numEl.offsetWidth;
       numEl.classList.add('pop');
     }
-    // 🚨 Alert when they reach position 1
     if (position === 1) triggerNextUpAlert(title, artist);
     document.getElementById('pos-total').textContent = 'of ' + total + ' in the queue';
     document.getElementById('pos-status').textContent = '';
@@ -1013,12 +1031,14 @@ function showPosCard(title, artist, singer, position, total, queueItems) {
     document.getElementById('pos-status').innerHTML    = '<span class="pos-updating">⏳ Checking with DJ…</span>';
   }
 
-  // Render full queue list if provided
   if (queueItems && queueItems.length) {
     renderQueueOnCard(queueItems, title, artist, singer);
   }
 
-  document.getElementById('pos-card').classList.add('show');
+  // Only force-open the card when explicitly requested (first submit or manual check)
+  if (forceOpen) {
+    document.getElementById('pos-card').classList.add('show');
+  }
 }
 
 function renderQueueOnCard(items, myTitle, myArtist, mySinger) {
@@ -1045,7 +1065,8 @@ function renderQueueOnCard(items, myTitle, myArtist, mySinger) {
 
 function closePosCard() {
   document.getElementById('pos-card').classList.remove('show');
-  stopPositionPolling();
+  // Do NOT stop polling — it continues in background
+  // Polling only stops when song is called or timeout expires
 }
 
 // ══════════════════════════════════════════
@@ -1199,12 +1220,16 @@ function hidePosCheckBtn() {
 }
 
 async function checkMyPosition() {
-  if (!posReqId || FIREBASE.includes('YOUR-PROJECT')) {
-    // No active request — just reopen last pos card if visible
+  // If polling is still running, just show the card — it's already up to date
+  if (posPoller) {
     document.getElementById('pos-card').classList.add('show');
     return;
   }
-  // Quick one-off fetch and show card
+  if (!posReqId || FIREBASE.includes('YOUR-PROJECT')) {
+    document.getElementById('pos-card').classList.add('show');
+    return;
+  }
+  // Polling has ended — do a one-off fetch and restart polling
   try {
     const r    = await fetch(FIREBASE + '/requests/' + posReqId + '.json');
     const data = await r.json();
@@ -1224,7 +1249,6 @@ async function checkMyPosition() {
         queueItems = Object.values(qdata)
           .filter(i => i.status === 'waiting' && i.position != null)
           .sort((a, b) => a.position - b.position);
-        // Show earliest (lowest) position among all of this singer's songs
         const mySingerName = document.getElementById('pos-singer').textContent.replace('🎤 ','');
         const mySongs = queueItems.filter(i => i.singer === mySingerName);
         if (mySongs.length > 0) earliestPos = mySongs[0].position;
@@ -1236,11 +1260,19 @@ async function checkMyPosition() {
       document.getElementById('pos-song-title').textContent,
       document.getElementById('pos-song-artist').textContent,
       document.getElementById('pos-singer').textContent.replace('🎤 ',''),
-      pos, total, queueItems
+      pos, total, queueItems, true
     );
     if (pos) showPosCheckBtn(pos);
+    // Restart polling now that user has re-engaged
+    startPositionPolling(
+      posReqId,
+      document.getElementById('pos-song-title').textContent,
+      document.getElementById('pos-song-artist').textContent,
+      document.getElementById('pos-singer').textContent.replace('🎤 ','')
+    );
   } catch(e) {
     showToast('Could not reach server — check your connection');
+    document.getElementById('pos-card').classList.add('show');
   }
 }
 
