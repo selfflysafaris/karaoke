@@ -652,10 +652,11 @@ function clearSearch() {
 // RENDER SONG LIST — infinite scroll + A–Z
 // ══════════════════════════════════════════
 const BATCH = 300;
-let renderedCount = 0;       // how many songs rendered so far
-let currentList   = [];      // the active filtered list
-let currentQ      = '';      // active search query
-let scrollObserver = null;   // IntersectionObserver for sentinel
+let renderedCount  = 0;
+let currentList    = [];
+let currentQ       = '';
+let scrollObserver = null;
+let isAppending    = false;   // guard against concurrent appends
 
 function sizeClass(n) {
   if (n <= 5)   return 'sz-xl';
@@ -676,53 +677,88 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Build artist groups from a slice of the list
-function buildArtistGroups(slice, q) {
-  const byArtist = {}, artistOrder = [];
-  slice.forEach(s => {
-    if (!byArtist[s.artist]) { byArtist[s.artist] = []; artistOrder.push(s.artist); }
-    byArtist[s.artist].push(s);
+// Pre-compute artist groups from the FULL list once, preserving order
+// Returns array of { artist, songs[] } — artists never split across batches
+function buildArtistIndex(list) {
+  const map = new Map();
+  const order = [];
+  list.forEach(s => {
+    if (!map.has(s.artist)) { map.set(s.artist, []); order.push(s.artist); }
+    map.get(s.artist).push(s);
   });
-  let html = '';
-  artistOrder.forEach(artist => {
-    html += '<div class="ag" data-az="' + esc(artist[0].toUpperCase()) + '"><div class="alabel">' + hl(artist, q) + '</div>';
-    byArtist[artist].forEach(s => {
-      const sel = selected && selected.artist === s.artist && selected.title === s.title;
-      html += '<div class="si' + (sel ? ' sel' : '') + '"' +
-        ' data-artist="' + esc(s.artist) + '"' +
-        ' data-title="'  + esc(s.title)  + '">' +
-        '<div class="st">' + hl(s.title, q) + '</div>' +
-        (sel ? '<div class="schk">✓</div>' : '') +
-        '</div>';
-    });
-    html += '</div>';
+  return order.map(a => ({ artist: a, songs: map.get(a) }));
+}
+
+// Render one artist group to HTML
+// globalOffset = the song number of the first song in this group across the full list
+function renderArtistGroup(group, q, globalOffset) {
+  const firstChar = group.artist[0].toUpperCase();
+  let html = '<div class="ag" data-az="' + esc(firstChar) + '"><div class="alabel">' + hl(group.artist, q) + '</div>';
+  group.songs.forEach((s, i) => {
+    const seqNum = globalOffset + i + 1;
+    const sel = selected && selected.artist === s.artist && selected.title === s.title;
+    html += '<div class="si' + (sel ? ' sel' : '') + '"' +
+      ' data-artist="' + esc(s.artist) + '"' +
+      ' data-title="'  + esc(s.title)  + '">' +
+      '<div class="st"><span style="color:var(--muted);font-size:.75em;font-family:\'DM Mono\',monospace;margin-right:6px">' + seqNum + '</span>' + hl(s.title, q) + '</div>' +
+      (sel ? '<div class="schk">✓</div>' : '') +
+      '</div>';
   });
+  html += '</div>';
   return html;
 }
 
-// A–Z strip — built from the FULL list regardless of batch
-function buildAZIndex(list) {
+// A–Z strip — built from FULL list
+function buildAZIndex(artistGroups) {
   const azEl = document.getElementById('az-index');
   if (!azEl) return;
-  if (!list || !list.length) { azEl.classList.add('hidden'); return; }
-  const letters = [...new Set(list.map(s => s.artist[0].toUpperCase()))].sort();
+  if (!artistGroups || !artistGroups.length) { azEl.classList.add('hidden'); return; }
+  const letters = [...new Set(artistGroups.map(g => g.artist[0].toUpperCase()))].sort();
   azEl.innerHTML = letters.map(l =>
     '<div class="az-letter" data-letter="' + l + '" onclick="jumpToLetter(\'' + l + '\')">' + l + '</div>'
   ).join('');
   azEl.classList.remove('hidden');
 }
 
-// Append the next batch of songs to the list
+// artistGroups cache for the current list
+let currentGroups = [];
+let renderedGroups = 0;  // how many artist groups rendered
+
+// Append next batch of ARTIST GROUPS (not raw songs) — prevents splitting
 function appendBatch() {
+  if (isAppending) return;
+  if (renderedGroups >= currentGroups.length) { removeSentinel(); return; }
+  isAppending = true;
+
   const el = document.getElementById('list');
-  if (renderedCount >= currentList.length) { removeSentinel(); return; }
-  const slice = currentList.slice(renderedCount, renderedCount + BATCH);
-  // Remove sentinel before appending, re-add after
   removeSentinel();
-  el.insertAdjacentHTML('beforeend', buildArtistGroups(slice, currentQ));
-  renderedCount += slice.length;
+
+  // Count songs in next batch of groups (~BATCH songs worth)
+  let songsInBatch = 0;
+  let groupsToAdd  = 0;
+  while (
+    renderedGroups + groupsToAdd < currentGroups.length &&
+    songsInBatch < BATCH
+  ) {
+    songsInBatch += currentGroups[renderedGroups + groupsToAdd].songs.length;
+    groupsToAdd++;
+  }
+
+  let html = '';
+  let offset = renderedCount; // global song index before this batch
+  for (let i = 0; i < groupsToAdd; i++) {
+    const group = currentGroups[renderedGroups + i];
+    html += renderArtistGroup(group, currentQ, offset);
+    offset += group.songs.length;
+  }
+  el.insertAdjacentHTML('beforeend', html);
+  renderedGroups += groupsToAdd;
+  renderedCount = offset;
+
   updateLoadingIndicator();
-  if (renderedCount < currentList.length) addSentinel();
+  isAppending = false;
+
+  if (renderedGroups < currentGroups.length) addSentinel();
 }
 
 function addSentinel() {
@@ -732,10 +768,9 @@ function addSentinel() {
   sentinel.id = 'scroll-sentinel';
   sentinel.style.cssText = 'height:1px;margin-bottom:8px';
   el.appendChild(sentinel);
-  if (scrollObserver) scrollObserver.disconnect();
   scrollObserver = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) appendBatch();
-  }, { rootMargin: '200px' });
+    if (entries[0].isIntersecting && !isAppending) appendBatch();
+  }, { rootMargin: '300px' });
   scrollObserver.observe(sentinel);
 }
 
@@ -748,12 +783,12 @@ function removeSentinel() {
 function updateLoadingIndicator() {
   const ind = document.getElementById('load-indicator');
   if (!ind) return;
-  const remaining = currentList.length - renderedCount;
-  if (remaining > 0) {
-    ind.textContent = 'Showing ' + renderedCount.toLocaleString() + ' of ' + currentList.length.toLocaleString() + ' songs — scroll for more';
+  const totalSongs = currentList.length;
+  if (renderedGroups < currentGroups.length) {
+    ind.textContent = 'Showing ' + renderedCount.toLocaleString() + ' of ' + totalSongs.toLocaleString() + ' songs — scroll for more';
     ind.style.display = 'block';
   } else {
-    ind.textContent = 'All ' + currentList.length.toLocaleString() + ' songs shown';
+    ind.textContent = 'All ' + totalSongs.toLocaleString() + ' songs shown';
     ind.style.display = 'block';
     setTimeout(() => { if (ind) ind.style.display = 'none'; }, 2000);
   }
@@ -761,71 +796,79 @@ function updateLoadingIndicator() {
 
 function renderList(list, q) {
   const el = document.getElementById('list');
-  // Teardown previous scroll observer
   removeSentinel();
-  currentList   = list;
-  currentQ      = q;
-  renderedCount = 0;
+  isAppending    = false;
+  currentList    = list;
+  currentQ       = q;
+  renderedCount  = 0;
+  renderedGroups = 0;
 
   if (!list.length) {
-    el.className = 'list';
-    el.innerHTML = '<div class="empty"><div class="ico">🔍</div><p>No songs found.<br>Try a different search.</p></div>';
-    document.getElementById('az-index') && document.getElementById('az-index').classList.add('hidden');
+    el.className  = 'list';
+    el.innerHTML  = '<div class="empty"><div class="ico">🔍</div><p>No songs found.<br>Try a different search.</p></div>';
+    const azEl = document.getElementById('az-index');
+    if (azEl) azEl.classList.add('hidden');
     return;
   }
 
-  el.className = 'list ' + sizeClass(list.length);
-  el.innerHTML = '';  // clear
+  // Pre-build artist groups for this list
+  currentGroups = buildArtistIndex(list);
 
-  // A–Z always built from full list
-  const isBrowse = !q;
-  if (isBrowse) {
-    buildAZIndex(list);
+  el.className = 'list ' + sizeClass(list.length);
+  el.innerHTML = '';
+
+  if (!q) {
+    buildAZIndex(currentGroups);
   } else {
     const azEl = document.getElementById('az-index');
     if (azEl) azEl.classList.add('hidden');
   }
 
-  // Render first batch
   appendBatch();
 }
 
-// Jump to letter — loads enough batches to expose the target artist, then scrolls
+// Jump to letter — synchronously loads all groups up to target, then scrolls
 function jumpToLetter(letter) {
-  // Flash the button
   const btn = document.querySelector('.az-letter[data-letter="' + letter + '"]');
   if (btn) {
     btn.classList.add('az-active');
     setTimeout(() => btn.classList.remove('az-active'), 400);
   }
 
-  // Check if target already in DOM
-  const tryScroll = () => {
-    const target = document.querySelector('#list .ag[data-az="' + letter + '"]');
-    if (target) {
-      const headerH = document.querySelector('.header').offsetHeight;
-      const top = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
-      window.scrollTo({ top, behavior: 'smooth' });
-      return true;
+  // Find the FIRST group starting with this letter
+  const targetGroupIdx = currentGroups.findIndex(g => g.artist[0].toUpperCase() === letter);
+  if (targetGroupIdx === -1) return;
+
+  // If not yet rendered, load synchronously up to and including target
+  if (targetGroupIdx >= renderedGroups) {
+    removeSentinel();
+    isAppending = true;
+    const el = document.getElementById('list');
+    let html   = '';
+    let offset = renderedCount;
+    while (renderedGroups <= targetGroupIdx) {
+      const group = currentGroups[renderedGroups];
+      html += renderArtistGroup(group, currentQ, offset);
+      offset += group.songs.length;
+      renderedGroups++;
     }
-    return false;
-  };
+    renderedCount = offset;
+    el.insertAdjacentHTML('beforeend', html);
+    isAppending = false;
+    updateLoadingIndicator();
+    if (renderedGroups < currentGroups.length) addSentinel();
+  }
 
-  if (tryScroll()) return;
-
-  // Artist not yet rendered — load batches until it appears
-  const loadUntilFound = () => {
-    if (renderedCount >= currentList.length) { tryScroll(); return; }
-    // Check if the letter exists at all in the full list
-    const exists = currentList.some(s => s.artist[0].toUpperCase() === letter);
-    if (!exists) return;
-    appendBatch();
-    // Give DOM time to paint then try again
-    requestAnimationFrame(() => {
-      if (!tryScroll()) loadUntilFound();
-    });
-  };
-  loadUntilFound();
+  // Double rAF ensures browser has painted before we measure scroll position
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const targets = document.querySelectorAll('#list .ag[data-az="' + letter + '"]');
+    if (!targets.length) return;
+    // Always scroll to the FIRST occurrence of this letter
+    const target  = targets[0];
+    const headerH = document.querySelector('.header').offsetHeight;
+    const top     = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }));
 }
 
 // ══════════════════════════════════════════
@@ -847,19 +890,34 @@ function selectSong(artist, title) {
   document.getElementById('prev-title').textContent  = title;
   document.getElementById('prev-artist').textContent = artist;
   document.getElementById('reqbar').classList.add('vis');
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  renderList(filtered, q);
+  // Update selection highlight in-place — don't reset the list/scroll
+  document.querySelectorAll('#list .si').forEach(el => {
+    const isSelected = el.dataset.artist === artist && el.dataset.title === title;
+    el.classList.toggle('sel', isSelected);
+    // Add/remove checkmark
+    const existing = el.querySelector('.schk');
+    if (isSelected && !existing) {
+      el.insertAdjacentHTML('beforeend', '<div class="schk">✓</div>');
+    } else if (!isSelected && existing) {
+      existing.remove();
+    }
+  });
+  // Scroll selected item into view
   setTimeout(() => {
-    const el = document.querySelector('.si.sel');
-    if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
-  }, 80);
+    const el = document.querySelector('#list .si.sel');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 60);
 }
 
 function cancelSelection() {
   selected = null;
   document.getElementById('reqbar').classList.remove('vis');
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  renderList(filtered, q);
+  // Clear selection highlight in-place
+  document.querySelectorAll('#list .si.sel').forEach(el => {
+    el.classList.remove('sel');
+    const chk = el.querySelector('.schk');
+    if (chk) chk.remove();
+  });
 }
 
 // ══════════════════════════════════════════
