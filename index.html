@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sonic Karaoke — Request a Song</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080f;--card:#111118;--card2:#1a1a24;--border:rgba(255,255,255,0.08);--accent:#e63946;--glow:rgba(230,57,70,0.35);--gold:#ffd166;--text:#eeeef5;--muted:#7a7a90;--success:#06d6a0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overscroll-behavior:none}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:50;background:rgba(8,8,15,0.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 16px 12px}
+.hrow{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.mic{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;animation:ripple 2.5s ease-in-out infinite}
+@keyframes ripple{0%{box-shadow:0 0 0 0 var(--glow)}70%{box-shadow:0 0 0 14px rgba(230,57,70,0)}100%{box-shadow:0 0 0 0 rgba(230,57,70,0)}}
+.htitle{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1}
+.hsub{font-size:11px;color:var(--muted);margin-top:2px}
+.hcount{font-family:'DM Mono',monospace;font-size:11px;background:var(--card2);border:1px solid var(--border);padding:4px 8px;border-radius:20px;color:var(--muted);white-space:nowrap;margin-left:auto}
+
+/* SEARCH */
+.swrap{position:relative}
+.sbox{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:15px 46px 15px 16px;font-size:17px;font-family:'DM Sans',sans-serif;font-weight:500;color:var(--text);outline:none;-webkit-appearance:none;transition:border-color .2s,box-shadow .2s}
+.sbox::placeholder{color:var(--muted)}
+.sbox:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(230,57,70,0.12)}
+.sclear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);border:none;color:var(--muted);font-size:15px;width:28px;height:28px;border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer}
+.sbox:not(:placeholder-shown)~.sclear{display:flex}
+
+/* RESULTS BAR */
+.rbar{padding:9px 16px 4px;font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;min-height:30px}
+.rbar b{color:var(--gold)}
+
+/* SONG LIST */
+.list{padding:0 12px 160px}
+.ag{margin-bottom:4px}
+.alabel{font-family:'Bebas Neue',sans-serif;letter-spacing:2px;color:var(--accent);padding:14px 8px 5px;border-bottom:1px solid rgba(230,57,70,0.18);margin-bottom:2px}
+.si{padding:13px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;border:1.5px solid transparent;margin-bottom:2px;transition:background .15s,border-color .15s;-webkit-user-select:none;user-select:none}
+.si:active{background:rgba(230,57,70,0.12)}
+.si.sel{background:rgba(230,57,70,0.18);border-color:var(--accent)}
+.st{flex:1;line-height:1.35}
+.st em{color:var(--gold);font-style:normal;font-weight:700}
+.schk{color:var(--accent);font-size:20px;flex-shrink:0}
+
+/* Dynamic font sizing as results narrow */
+.sz-xl .alabel{font-size:28px}.sz-xl .st{font-size:22px}
+.sz-lg .alabel{font-size:24px}.sz-lg .st{font-size:19px}
+.sz-md .alabel{font-size:21px}.sz-md .st{font-size:17px}
+.sz-sm .alabel{font-size:19px}.sz-sm .st{font-size:15px}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .ico{font-size:52px;margin-bottom:12px}
+.empty p{font-size:16px;line-height:1.6}
+
+/* REQUEST BAR */
+.reqbar{position:fixed;bottom:0;left:0;right:0;padding:16px 16px 32px;background:linear-gradient(to top,var(--bg) 65%,transparent);transform:translateY(110%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:100}
+.reqbar.vis{transform:translateY(0)}
+.preview{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.prev-ico{font-size:22px;flex-shrink:0}
+.prev-title{font-size:15px;font-weight:600}
+.prev-artist{font-size:12px;color:var(--muted);margin-top:1px}
+.reqbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:17px;font-size:19px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 24px rgba(230,57,70,0.4);transition:transform .1s,background .15s}
+.reqbtn:active{transform:scale(.98);background:#c1121f}
+
+/* SHARED MODAL STYLES */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.87);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.open{opacity:1;pointer-events:all}
+.sheet{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:28px 20px 44px;border-top:1px solid var(--border);transform:translateY(100%);transition:transform .32s cubic-bezier(.34,1.2,.64,1)}
+.overlay.open .sheet{transform:translateY(0)}
+.handle{width:40px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 22px}
+.mtitle{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:5px}
+.msub{font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.5}
+.msong{background:var(--card2);border-radius:10px;padding:12px 14px;margin-bottom:18px}
+.msong strong{display:block;font-size:16px;font-weight:600;margin-bottom:2px}
+.msong span{font-size:13px;color:var(--muted)}
+.ninput{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;font-size:20px;font-family:'DM Sans',sans-serif;font-weight:500;color:var(--text);outline:none;-webkit-appearance:none;margin-bottom:14px;transition:border-color .2s}
+.ninput:focus{border-color:var(--accent)}
+.subbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:18px;font-size:20px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 24px rgba(230,57,70,0.4)}
+.canbtn{width:100%;background:none;border:none;color:var(--muted);font-size:15px;padding:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px}
+
+/* WELCOME SCREEN */
+.welcome{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:300;display:none;align-items:flex-end}
+.welcome.show{display:flex}
+.wsheet{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:32px 20px 48px;border-top:1px solid var(--border)}
+.wico{font-size:54px;text-align:center;margin-bottom:14px}
+.wtitle{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;text-align:center;margin-bottom:8px}
+.wsub{font-size:15px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.6;padding:0 8px}
+/* Returning user greeting */
+.wreturn-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--gold);text-align:center;margin-bottom:4px}
+.wreturn-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:24px}
+.wlabel{font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:500}
+.wbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:18px;font-size:21px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 24px rgba(230,57,70,0.4);margin-top:10px;transition:transform .1s}
+.wbtn:active{transform:scale(.98)}
+.wbtn-ghost{width:100%;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:14px;padding:14px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px}
+
+/* TOAST */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-90px);background:#0d2b1a;border:1px solid #1a5c34;color:var(--success);padding:14px 24px;border-radius:12px;font-size:15px;font-weight:600;z-index:500;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.6);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* OFFLINE BANNER */
+.offline{display:none;background:#2a1a00;border-bottom:1px solid #5c3d00;color:var(--gold);font-size:13px;padding:8px 16px;text-align:center;font-weight:500}
+.offline.show{display:block}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px}
+.spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="offline" id="offline-banner">📡 Offline — using cached song list</div>
+
+<header class="header">
+  <div class="hrow">
+    <div class="mic">🎤</div>
+    <div>
+      <div class="htitle">Sonic Karaoke</div>
+      <div class="hsub">Vol 12 / 2026 — Request a song</div>
+    </div>
+    <div class="hcount" id="hcount">—</div>
+  </div>
+  <div class="swrap">
+    <input class="sbox" type="search" id="search"
+      placeholder="Search artist or song…"
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button class="sclear" onclick="clearSearch()">✕</button>
+  </div>
+</header>
+
+<div class="rbar" id="rbar"></div>
+<div id="list" class="list">
+  <div class="loading"><div class="spin"></div><p style="color:var(--muted);font-size:14px">Loading songs…</p></div>
+</div>
+
+<!-- STICKY REQUEST BAR -->
+<div class="reqbar" id="reqbar">
+  <div class="preview">
+    <div class="prev-ico">🎵</div>
+    <div>
+      <div class="prev-title" id="prev-title"></div>
+      <div class="prev-artist" id="prev-artist"></div>
+    </div>
+  </div>
+  <button class="reqbtn" onclick="openReqModal()">🎤 REQUEST THIS SONG</button>
+</div>
+
+<!-- REQUEST NAME MODAL -->
+<div class="overlay" id="req-modal">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="mtitle">🎤 Request Song</div>
+    <div class="msub" id="req-modal-sub">Your name is pre-filled — change it if your partner is singing</div>
+    <div class="msong" id="msong"></div>
+    <input class="ninput" type="text" id="req-name" placeholder="Your name…" autocomplete="off">
+    <button class="subbtn" onclick="submitRequest()">SUBMIT REQUEST</button>
+    <button class="canbtn" onclick="closeReqModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- WELCOME / NAME SCREEN -->
+<div class="welcome" id="welcome">
+  <div class="wsheet">
+    <div class="wico" id="w-ico">🎤</div>
+    <div class="wtitle" id="w-title">Welcome!</div>
+    <div id="w-body"></div>
+    <div class="wlabel" id="w-label">What's your name?</div>
+    <input class="ninput" type="text" id="welcome-name" placeholder="Enter your name…" autocomplete="name">
+    <button class="wbtn" id="w-confirm" onclick="confirmWelcomeName()">LET'S SING! 🎉</button>
+    <button class="wbtn-ghost" id="w-notme" style="display:none" onclick="switchWelcomeName()">Not me — change name</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG — replace with your Firebase Realtime DB URL ──
+const FIREBASE = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
+const STORAGE_KEY = 'sk_singer_name'; // persists across sessions
+
+let songs = [], filtered = [], selected = null, guestName = '';
+let searchTimer = null;
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+async function init() {
+  // Service worker for offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // Online/offline banner
+  const banner = document.getElementById('offline-banner');
+  window.addEventListener('offline', () => banner.classList.add('show'));
+  window.addEventListener('online',  () => banner.classList.remove('show'));
+  if (!navigator.onLine) banner.classList.add('show');
+
+  // Load song list (served from cache by SW when offline)
+  try {
+    const r = await fetch('songs.json');
+    songs = await r.json();
+    document.getElementById('hcount').textContent = songs.length.toLocaleString() + ' songs';
+  } catch(e) {
+    document.getElementById('list').innerHTML =
+      '<div class="empty"><div class="ico">⚠️</div><p>Could not load song list.<br>Check your connection and reload.</p></div>';
+    return;
+  }
+
+  // Show welcome screen (uses persisted name if available)
+  showWelcome();
+
+  // Search handler
+  document.getElementById('search').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(doSearch, 130);
+  });
+
+  // Enter keys
+  document.getElementById('welcome-name').addEventListener('keydown', e => { if(e.key==='Enter') confirmWelcomeName(); });
+  document.getElementById('req-name').addEventListener('keydown', e => { if(e.key==='Enter') submitRequest(); });
+}
+
+// ══════════════════════════════════════════
+// WELCOME SCREEN — uses localStorage to persist name
+// ══════════════════════════════════════════
+function showWelcome() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  const w = document.getElementById('welcome');
+  w.classList.add('show');
+
+  if (saved) {
+    // ── RETURNING USER ──
+    guestName = saved;
+    document.getElementById('w-ico').textContent = '👋';
+    document.getElementById('w-title').textContent = 'Welcome back!';
+    document.getElementById('w-body').innerHTML =
+      '<div class="wreturn-name">' + esc(saved) + '</div>' +
+      '<div class="wreturn-sub">Great to see you again — ready to sing?</div>';
+    document.getElementById('w-label').textContent = 'Is that still you?';
+    document.getElementById('welcome-name').value = saved;
+    document.getElementById('w-confirm').textContent = "YES, LET'S SING! 🎤";
+    document.getElementById('w-notme').style.display = 'block';
+  } else {
+    // ── NEW USER ──
+    document.getElementById('w-ico').textContent = '🎤';
+    document.getElementById('w-title').textContent = 'Welcome!';
+    document.getElementById('w-body').innerHTML =
+      '<div class="wsub">Browse ' + songs.length.toLocaleString() + ' songs and send your request straight to the DJ.</div>';
+    document.getElementById('w-label').textContent = "What's your name?";
+    document.getElementById('welcome-name').value = '';
+    document.getElementById('w-confirm').textContent = "LET'S SING! 🎉";
+    document.getElementById('w-notme').style.display = 'none';
+  }
+
+  setTimeout(() => document.getElementById('welcome-name').focus(), 400);
+}
+
+function confirmWelcomeName() {
+  const name = document.getElementById('welcome-name').value.trim();
+  if (!name) { document.getElementById('welcome-name').focus(); return; }
+  guestName = name;
+  localStorage.setItem(STORAGE_KEY, name); // persist for future visits
+  document.getElementById('welcome').classList.remove('show');
+  renderPrompt();
+}
+
+// Returning user wants to sing under a different name
+function switchWelcomeName() {
+  document.getElementById('w-ico').textContent = '✏️';
+  document.getElementById('w-title').textContent = 'Change Name';
+  document.getElementById('w-body').innerHTML =
+    '<div class="wsub">Enter the name you\'d like to use for your requests today.</div>';
+  document.getElementById('w-label').textContent = 'New name:';
+  document.getElementById('welcome-name').value = '';
+  document.getElementById('w-confirm').textContent = 'SAVE & SING 🎤';
+  document.getElementById('w-notme').style.display = 'none';
+  document.getElementById('welcome-name').focus();
+}
+
+// ══════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════
+function doSearch() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  if (!q) {
+    filtered = [];
+    renderPrompt();
+    document.getElementById('rbar').innerHTML = '';
+    return;
+  }
+  filtered = songs.filter(s =>
+    s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
+  );
+  document.getElementById('rbar').innerHTML =
+    '<b>' + filtered.length.toLocaleString() + '</b> match' +
+    (filtered.length !== 1 ? 'es' : '') + ' for "' + esc(q) + '"';
+  renderList(filtered, q);
+}
+
+function clearSearch() {
+  document.getElementById('search').value = '';
+  filtered = [];
+  renderPrompt();
+  document.getElementById('rbar').innerHTML = '';
+  document.getElementById('search').focus();
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function renderPrompt() {
+  const el = document.getElementById('list');
+  el.className = 'list';
+  el.innerHTML = '<div class="empty"><div class="ico">🎵</div><p>Type an artist or song title<br>to find your song.</p></div>';
+}
+
+function sizeClass(n) {
+  if (n <= 5)   return 'sz-xl';
+  if (n <= 20)  return 'sz-lg';
+  if (n <= 80)  return 'sz-md';
+  if (n <= 250) return 'sz-sm';
+  return '';
+}
+
+function hl(text, q) {
+  if (!q) return esc(text);
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (i === -1) return esc(text);
+  return esc(text.slice(0,i)) + '<em>' + esc(text.slice(i,i+q.length)) + '</em>' + esc(text.slice(i+q.length));
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderList(list, q) {
+  const el = document.getElementById('list');
+  if (!list.length) {
+    el.className = 'list';
+    el.innerHTML = '<div class="empty"><div class="ico">🔍</div><p>No songs found.<br>Try a different search.</p></div>';
+    return;
+  }
+
+  el.className = 'list ' + sizeClass(list.length);
+
+  // Group by artist, maintaining search-relevance order
+  const byArtist = {};
+  const artistOrder = [];
+  list.forEach(s => {
+    if (!byArtist[s.artist]) { byArtist[s.artist] = []; artistOrder.push(s.artist); }
+    byArtist[s.artist].push(s);
+  });
+
+  let html = '';
+  artistOrder.forEach(artist => {
+    html += '<div class="ag"><div class="alabel">' + hl(artist, q) + '</div>';
+    byArtist[artist].forEach(s => {
+      const sel = selected && selected.artist === s.artist && selected.title === s.title;
+      html += '<div class="si' + (sel ? ' sel' : '') + '" onclick="selectSong(' +
+        JSON.stringify(s.artist) + ',' + JSON.stringify(s.title) + ')">' +
+        '<div class="st">' + hl(s.title, q) + '</div>' +
+        (sel ? '<div class="schk">✓</div>' : '') +
+        '</div>';
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// SONG SELECTION
+// ══════════════════════════════════════════
+function selectSong(artist, title) {
+  selected = { artist, title };
+  document.getElementById('prev-title').textContent = title;
+  document.getElementById('prev-artist').textContent = artist;
+  document.getElementById('reqbar').classList.add('vis');
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  renderList(filtered.length ? filtered : [], q);
+  setTimeout(() => {
+    const el = document.querySelector('.si.sel');
+    if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 80);
+}
+
+// ══════════════════════════════════════════
+// REQUEST MODAL
+// ══════════════════════════════════════════
+function openReqModal() {
+  if (!selected) return;
+  document.getElementById('msong').innerHTML =
+    '<strong>' + esc(selected.title) + '</strong><span>' + esc(selected.artist) + '</span>';
+  // Pre-fill with saved name — partner can edit before submitting
+  document.getElementById('req-name').value = guestName;
+  document.getElementById('req-modal').classList.add('open');
+  setTimeout(() => document.getElementById('req-name').focus(), 350);
+}
+
+function closeReqModal() {
+  document.getElementById('req-modal').classList.remove('open');
+}
+
+async function submitRequest() {
+  const name = document.getElementById('req-name').value.trim();
+  if (!name) { document.getElementById('req-name').focus(); return; }
+
+  // Always persist whatever name was used for next session
+  guestName = name;
+  localStorage.setItem(STORAGE_KEY, name);
+
+  const req = {
+    singer: name,
+    artist: selected.artist,
+    title:  selected.title,
+    ts:     Date.now(),
+    status: 'waiting'
+  };
+
+  try {
+    await fetch(FIREBASE + '/requests.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req)
+    });
+  } catch(e) {
+    console.warn('Firebase unavailable — request not sent to DJ:', e);
+  }
+
+  closeReqModal();
+  document.getElementById('reqbar').classList.remove('vis');
+  selected = null;
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  if (q) renderList(filtered, q); else renderPrompt();
+  showToast('✅ Request sent! Good luck, ' + name + '! 🎤');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+init();
+</script>
+</body>
+</html>
