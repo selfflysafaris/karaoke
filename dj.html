@@ -13,7 +13,9 @@
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
 
 /* HEADER */
-.header{background:linear-gradient(135deg,#07070d 0%,#150710 100%);padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.header{background:linear-gradient(135deg,#07070d 0%,#150710 100%);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.header-row1{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.header-row2{display:flex;align-items:center;gap:12px}
 .dj-badge{background:var(--accent);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;padding:4px 10px;border-radius:6px;flex-shrink:0}
 .htitle{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px}
 .live-wrap{display:flex;align-items:center;gap:6px}
@@ -65,15 +67,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .gh-progress-msg.err{color:var(--accent)}
 
 /* PIN HEADER DISPLAY */
-.pin-header-wrap{display:flex;align-items:center;gap:8px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:7px 14px;cursor:pointer;transition:border-color .2s;flex-shrink:0}
+.pin-header-wrap{display:flex;align-items:center;gap:12px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:8px 16px;cursor:pointer;transition:border-color .2s;flex-shrink:0}
 .pin-header-wrap:hover{border-color:var(--gold)}
 .pin-header-wrap.active{border-color:rgba(255,209,102,0.5);background:rgba(255,209,102,0.07)}
-.pin-header-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;line-height:1}
-.pin-header-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:var(--gold);line-height:1;min-width:52px;text-align:center}
+.pin-header-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;white-space:nowrap}
+.pin-header-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:6px;color:var(--gold);line-height:1;min-width:72px;text-align:center}
 .pin-header-val.none{font-size:13px;color:var(--muted);letter-spacing:0;font-family:'DM Sans',sans-serif;font-weight:500;min-width:auto}
-.pin-header-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.pin-header-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
 .pin-header-status.active{background:rgba(6,214,160,0.15);color:var(--green);border:1px solid rgba(6,214,160,0.3)}
 .pin-header-status.off{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
+.pin-header-hint{font-size:11px;color:var(--muted);font-style:italic}
 
 /* PIN MANAGEMENT */
 .pin-display{background:var(--card2);border:2px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -82,10 +85,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .pin-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}
 .pin-status.active{background:rgba(6,214,160,0.15);color:var(--green);border:1px solid rgba(6,214,160,0.3)}
 .pin-status.off{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
-.pin-input-row{display:flex;gap:8px;margin-bottom:10px}
-.pin-input{flex:1;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:13px 15px;font-size:22px;font-family:'DM Mono',monospace;color:var(--text);outline:none;letter-spacing:6px;text-align:center;transition:border-color .2s}
+.pin-input-row{display:flex;gap:8px;margin-bottom:10px;width:100%;min-width:0}
+.pin-input{flex:1;min-width:0;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:11px 10px;font-size:18px;font-family:'DM Mono',monospace;color:var(--text);outline:none;letter-spacing:4px;text-align:center;transition:border-color .2s;width:0}
 .pin-input:focus{border-color:var(--gold)}
-.pin-set-btn{background:var(--gold);color:#000;border:none;border-radius:10px;padding:13px 18px;font-size:14px;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+.pin-set-btn{background:var(--gold);color:#000;border:none;border-radius:10px;padding:11px 14px;font-size:13px;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .pin-set-btn:hover{opacity:.85}
 .pin-clear-btn{width:100%;background:rgba(230,57,70,0.1);color:var(--accent);border:1px solid rgba(230,57,70,0.25);border-radius:10px;padding:11px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:background .15s}
 .pin-clear-btn:hover{background:rgba(230,57,70,0.2)}
@@ -137,7 +140,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
 .tab{flex:1;padding:12px 8px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:color .2s,border-color .2s;letter-spacing:.3px;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif}
 .tab.active{color:var(--text);border-bottom-color:var(--accent)}
-.tab-panel{display:none;flex:1;overflow-y:auto;padding:14px}
+.tab-panel{display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:14px}
 .tab-panel.active{display:block}
 .tab-panel::-webkit-scrollbar{width:4px}
 .tab-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -211,21 +214,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
 
 <header class="header">
-  <div class="dj-badge">DJ</div>
-  <div class="htitle">Karaoke Console</div>
-  <div class="live-wrap"><div class="live-dot"></div><span class="live-label">LIVE</span></div>
-  <div class="pin-header-wrap" id="pin-header-wrap" onclick="switchTab('balance')" title="Click to manage PIN">
-    <div class="pin-header-label">VENUE PIN</div>
-    <div class="pin-header-val" id="pin-header-val">—</div>
-    <div class="pin-header-status off" id="pin-header-status">OFF</div>
+  <div class="header-row1">
+    <div class="dj-badge">DJ</div>
+    <div class="htitle">Karaoke Console</div>
+    <div class="live-wrap"><div class="live-dot"></div><span class="live-label">LIVE</span></div>
+    <div class="hright">
+      <button class="btn btn-ghost" onclick="refreshQueue()">⟳ Refresh</button>
+      <button class="btn btn-gold" onclick="rebalanceQueue()">⚖️ Rebalance</button>
+      <button class="btn btn-green" onclick="markNextDone()">✓ Next Done</button>
+    </div>
   </div>
-  <div class="hright">
-    <button class="btn btn-ghost" onclick="refreshQueue()">⟳ Refresh</button>
-    <button class="btn btn-blue" id="songlist-btn" onclick="refreshSongList()" title="Reload songs-data.js from server">🎵 <span class="spin-ico">↻</span> Song List</button>
-    <button class="btn btn-purple" id="upload-btn" onclick="openUpload()" title="Upload new song list to GitHub">⬆️ Upload</button>
-    <button class="btn btn-ghost" onclick="openGHSetup()" title="GitHub settings">⚙️</button>
-    <button class="btn btn-gold" onclick="rebalanceQueue()">⚖️ Rebalance</button>
-    <button class="btn btn-green" onclick="markNextDone()">✓ Next Done</button>
+  <div class="header-row2">
+    <div class="pin-header-wrap" id="pin-header-wrap" onclick="switchTab('balance')" title="Click to manage PIN">
+      <div class="pin-header-label">VENUE PIN</div>
+      <div class="pin-header-val none" id="pin-header-val">OFF</div>
+      <div class="pin-header-status off" id="pin-header-status">INACTIVE</div>
+    </div>
+    <div class="pin-header-hint">Show this code to your guests · Click to change</div>
   </div>
 </header>
 
@@ -249,6 +254,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <button class="tab active" onclick="switchTab('tonight')">🎤 Tonight</button>
       <button class="tab" onclick="switchTab('top50')">🏆 Top 50</button>
       <button class="tab" onclick="switchTab('balance')">⚖️ Rules</button>
+      <button class="tab" onclick="switchTab('update')">🎵 Update</button>
     </div>
 
     <!-- TONIGHT TAB -->
@@ -301,23 +307,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         Drag cards to reorder manually at any time. Hit <b>⚖️ Rebalance</b> to re-apply the rules.
       </div>
 
-      <div class="sec-title" style="margin-top:20px">🎵 SONG LIST MANAGEMENT</div>
-      <div class="balance-info" id="songlist-info">
-        The singer app loads songs from <b>songs-data.js</b> — a JavaScript file in the same folder as the app.<br><br>
-        <b>To update the song list:</b><br>
-        1. Run the Python extraction script on your Mac to generate a new <b>songs-data.js</b><br>
-        2. Tap <b>⬆️ Upload</b> in the header — pick the file and push directly to GitHub<br>
-        3. Tap <b>🎵 ↻ Song List</b> — singers get the new list immediately<br><br>
-        <b>First time setup:</b> Tap <b>⚙️</b> to enter your GitHub username, repo name and token.<br>
-        Credentials are saved on this device — you only need to do this once.<br><br>
-        <b>File locations (GitHub Pages):</b><br>
-        • <b>songs-data.js</b> → root of your GitHub repo (same folder as index.html)<br>
-        • <b>songs.json</b> → same folder (offline fallback — upload both together)<br>
-        • <b>PDF original</b> → keep locally on your Mac — never needed on the server<br><br>
-        <b>Last loaded:</b> <span id="songlist-last-loaded" style="color:var(--gold)">—</span><br>
-        <b>Songs in memory:</b> <span id="songlist-count" style="color:var(--gold)">—</span>
-      </div>
-
       <div class="sec-title" style="margin-top:20px">🔒 VENUE PIN</div>
       <div class="balance-info" style="margin-bottom:14px">
         Set a 4-digit PIN displayed at your venue. Singers must enter it before browsing songs — prevents remote requests from outside the room.<br><br>
@@ -337,6 +326,32 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <button class="pin-set-btn" onclick="setPIN()">SET PIN</button>
       </div>
       <button class="pin-clear-btn" onclick="clearPIN()">🗑 Remove PIN (disable gate)</button>
+    </div>
+
+    <!-- UPDATE TAB -->
+    <div class="tab-panel" id="tab-update">
+      <div class="sec-title">🎵 SONG LIST</div>
+      <div class="balance-info" id="songlist-info">
+        The singer app loads songs from <b>songs-data.js</b> — a JavaScript file in the same folder as the app.<br><br>
+        <b>Last loaded:</b> <span id="songlist-last-loaded" style="color:var(--gold)">—</span><br>
+        <b>Songs in memory:</b> <span id="songlist-count" style="color:var(--gold)">—</span>
+      </div>
+      <button class="btn btn-blue" id="songlist-btn" onclick="refreshSongList()" style="width:100%;padding:14px;font-size:15px;margin-bottom:10px">🎵 <span class="spin-ico" id="songlist-spin">↻</span> Reload Song List</button>
+
+      <div class="sec-title" style="margin-top:16px">⬆️ UPLOAD SONG LIST</div>
+      <div class="balance-info" style="margin-bottom:12px">
+        Run the Python script on your Mac to generate a new <b>songs-data.js</b>, then upload it here to push directly to GitHub. Singers get the new list immediately.
+      </div>
+      <button class="btn btn-purple" id="upload-btn" onclick="openUpload()" style="width:100%;padding:14px;font-size:15px;margin-bottom:10px">⬆️ Upload songs-data.js to GitHub</button>
+
+      <div class="sec-title" style="margin-top:16px">⚙️ GITHUB SETTINGS</div>
+      <div class="balance-info" style="margin-bottom:12px">
+        Enter your GitHub username, repo name and access token. Saved on this device — only needed once.<br><br>
+        <b>File locations (GitHub Pages):</b><br>
+        • <b>songs-data.js</b> → root of your repo<br>
+        • <b>songs.json</b> → same folder (offline fallback)
+      </div>
+      <button class="btn btn-ghost" onclick="openGHSetup()" style="width:100%;padding:14px;font-size:15px">⚙️ GitHub Setup</button>
     </div>
   </div>
 
@@ -1205,7 +1220,7 @@ function renderBalanceBoard(counts) {
 function switchTab(name) {
   activeTab = name;
   document.querySelectorAll('.tab').forEach((t,i) => {
-    const names = ['tonight','top50','balance'];
+    const names = ['tonight','top50','balance','update'];
     t.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
