@@ -22,6 +22,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .hcount{font-family:'DM Mono',monospace;font-size:11px;background:var(--card2);border:1px solid var(--border);padding:4px 8px;border-radius:20px;color:var(--muted);white-space:nowrap}
 .help-btn{width:28px;height:28px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif}
 .help-btn:active{background:var(--card)}
+.pos-check-btn{background:rgba(230,57,70,0.15);border:1px solid rgba(230,57,70,0.4);color:var(--accent);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:background .15s}
+.pos-check-btn:active{background:rgba(230,57,70,0.3)}
 
 /* SEARCH */
 .swrap{position:relative}
@@ -167,15 +169,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .flash-overlay{position:fixed;inset:0;z-index:600;pointer-events:none;opacity:0}
 @keyframes screenFlash{
   0%  {opacity:0}
-  8%  {opacity:1;background:#fff}
-  20% {opacity:.6;background:#e63946}
-  35% {opacity:1;background:#fff}
+  4%  {opacity:1;background:#fff}
+  10% {opacity:.7;background:#e63946}
+  16% {opacity:1;background:#fff}
+  22% {opacity:.7;background:#e63946}
+  28% {opacity:1;background:#fff}
+  34% {opacity:.7;background:#e63946}
+  42% {opacity:1;background:#fff}
   50% {opacity:.6;background:#e63946}
-  65% {opacity:1;background:#fff}
-  80% {opacity:.3;background:#e63946}
+  60% {opacity:.8;background:#fff}
+  72% {opacity:.5;background:#e63946}
+  84% {opacity:.3;background:#fff}
   100%{opacity:0}
 }
-.flash-overlay.go{animation:screenFlash .9s ease-out forwards}
+.flash-overlay.go{animation:screenFlash 5s ease-out forwards}
 
 /* YOU'RE UP BANNER */
 .yourup{position:fixed;inset:0;z-index:590;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);flex-direction:column;gap:0}
@@ -204,6 +211,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
     </div>
     <div class="hright">
       <div class="hcount" id="hcount">—</div>
+      <button class="pos-check-btn" id="pos-check-btn" onclick="checkMyPosition()" title="Check my queue position" style="display:none">🎤 #<span id="pos-check-num">?</span></button>
       <button class="help-btn" onclick="showHowTo()" title="How it works">?</button>
     </div>
   </div>
@@ -609,6 +617,7 @@ async function submitRequest() {
   const name = document.getElementById('req-name').value.trim();
   if (!name) { document.getElementById('req-name').focus(); return; }
   nextUpAlerted = false; // reset for each new request
+  hidePosCheckBtn();     // hide stale position button
 
   guestName = name;
   localStorage.setItem(STORAGE_KEY, name);
@@ -661,6 +670,7 @@ function showPosCard(title, artist, singer, position, total, queueItems) {
     if (position === 1) triggerNextUpAlert(title, artist);
     document.getElementById('pos-total').textContent = 'of ' + total + ' in the queue';
     document.getElementById('pos-status').textContent = '';
+    showPosCheckBtn(position);
   } else {
     numEl.textContent = '…';
     document.getElementById('pos-total').textContent   = 'waiting for queue position';
@@ -722,6 +732,7 @@ function startPositionPolling(fbId, title, artist, singer) {
         document.getElementById('pos-total').textContent  = 'Your song has been called — get up there! 🎤';
         document.getElementById('pos-status').textContent = '';
         document.getElementById('pos-phase').textContent  = '';
+        hidePosCheckBtn();
         stopPositionPolling();
         return;
       }
@@ -829,6 +840,63 @@ function triggerNextUpAlert(songTitle, songArtist) {
 
 function dismissYourup() {
   document.getElementById('yourup').classList.remove('show');
+}
+
+// ══════════════════════════════════════════
+// MANUAL POSITION CHECK BUTTON
+// ══════════════════════════════════════════
+function showPosCheckBtn(position) {
+  const btn = document.getElementById('pos-check-btn');
+  const num = document.getElementById('pos-check-num');
+  if (position !== null) {
+    num.textContent = position;
+  }
+  btn.style.display = 'flex';
+}
+
+function hidePosCheckBtn() {
+  document.getElementById('pos-check-btn').style.display = 'none';
+}
+
+async function checkMyPosition() {
+  if (!posReqId || FIREBASE.includes('YOUR-PROJECT')) {
+    // No active request — just reopen last pos card if visible
+    document.getElementById('pos-card').classList.add('show');
+    return;
+  }
+  // Quick one-off fetch and show card
+  try {
+    const r    = await fetch(FIREBASE + '/requests/' + posReqId + '.json');
+    const data = await r.json();
+    if (!data || data.status === 'done' || data.status === 'removed') {
+      document.getElementById('pos-number').textContent = '✓';
+      document.getElementById('pos-total').textContent  = 'Your song has been called!';
+      document.getElementById('pos-card').classList.add('show');
+      hidePosCheckBtn();
+      return;
+    }
+    let queueItems = null;
+    try {
+      const qr    = await fetch(FIREBASE + '/requests.json');
+      const qdata = await qr.json();
+      if (qdata) {
+        queueItems = Object.values(qdata)
+          .filter(i => i.status === 'waiting' && i.position != null)
+          .sort((a, b) => a.position - b.position);
+      }
+    } catch(e) {}
+    const pos   = data.position   || null;
+    const total = data.queueTotal || '?';
+    showPosCard(
+      document.getElementById('pos-song-title').textContent,
+      document.getElementById('pos-song-artist').textContent,
+      document.getElementById('pos-singer').textContent.replace('🎤 ',''),
+      pos, total, queueItems
+    );
+    if (pos) showPosCheckBtn(pos);
+  } catch(e) {
+    showToast('Could not reach server — check your connection');
+  }
 }
 
 // ══════════════════════════════════════════
