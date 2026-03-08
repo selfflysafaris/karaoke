@@ -127,6 +127,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .pos-close{width:100%;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:12px;padding:13px;font-size:15px;font-family:"DM Sans",sans-serif;cursor:pointer;margin-top:16px}
 .pos-close:active{background:rgba(255,255,255,0.05)}
 </style>
+<script src="songs-data.js"></script>
 </head>
 <body>
 
@@ -197,8 +198,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 
 <script>
 // ── CONFIG — replace with your Firebase Realtime DB URL ──
-const FIREBASE_URL = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
-//const FIREBASE = 'https://YOUR-PROJECT-default-rtdb.firebaseio.com';
+const FIREBASE = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
 const STORAGE_KEY = 'sk_singer_name'; // persists across sessions
 
 let songs = [], filtered = [], selected = null, guestName = '';
@@ -219,15 +219,21 @@ async function init() {
   window.addEventListener('online',  () => banner.classList.remove('show'));
   if (!navigator.onLine) banner.classList.add('show');
 
-  // Load song list (served from cache by SW when offline)
-  try {
-    const r = await fetch('songs.json');
-    songs = await r.json();
+  // Load song list from embedded JS (works offline and as file://)
+  if (typeof window.SONGS_DATA !== 'undefined' && window.SONGS_DATA.length) {
+    songs = window.SONGS_DATA;
     document.getElementById('hcount').textContent = songs.length.toLocaleString() + ' songs';
-  } catch(e) {
-    document.getElementById('list').innerHTML =
-      '<div class="empty"><div class="ico">⚠️</div><p>Could not load song list.<br>Check your connection and reload.</p></div>';
-    return;
+  } else {
+    // Fallback: try fetching songs.json (GitHub Pages / web server)
+    try {
+      const r = await fetch('songs.json');
+      songs = await r.json();
+      document.getElementById('hcount').textContent = songs.length.toLocaleString() + ' songs';
+    } catch(e) {
+      document.getElementById('list').innerHTML =
+        '<div class="empty"><div class="ico">⚠️</div><p>Could not load song list.<br>Make sure songs-data.js is in the same folder.</p></div>';
+      return;
+    }
   }
 
   // Show welcome screen (uses persisted name if available)
@@ -428,6 +434,8 @@ function cancelSelection() {
   const q = document.getElementById('search').value.trim().toLowerCase();
   renderList(filtered, q);
 }
+
+function selectSong(artist, title) {
   selected = { artist, title };
   document.getElementById('prev-title').textContent = title;
   document.getElementById('prev-artist').textContent = artist;

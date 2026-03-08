@@ -5,7 +5,8 @@ const CACHE = 'sonic-karaoke-v1';
 const PRECACHE = [
   './',
   './index.html',
-  './songs.json'
+  './songs.json',
+  './songs-data.js'
 ];
 
 // Install: cache everything immediately
@@ -43,7 +44,7 @@ self.addEventListener('fetch', e => {
   }
 
   // songs.json: cache-first (massive file, doesn't change during an event)
-  if (url.pathname.endsWith('songs.json')) {
+  if (url.pathname.endsWith('songs.json') || url.pathname.endsWith('songs-data.js')) {
     e.respondWith(
       caches.match(e.request).then(cached => {
         if (cached) return cached;
