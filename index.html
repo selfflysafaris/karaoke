@@ -217,6 +217,9 @@ async function init() {
     searchTimer = setTimeout(doSearch, 130);
   });
 
+  // Delegated song tap handler
+  initListListener();
+
   // Enter keys
   document.getElementById('welcome-name').addEventListener('keydown', e => { if(e.key==='Enter') confirmWelcomeName(); });
   document.getElementById('req-name').addEventListener('keydown', e => { if(e.key==='Enter') submitRequest(); });
@@ -364,8 +367,10 @@ function renderList(list, q) {
     html += '<div class="ag"><div class="alabel">' + hl(artist, q) + '</div>';
     byArtist[artist].forEach(s => {
       const sel = selected && selected.artist === s.artist && selected.title === s.title;
-      html += '<div class="si' + (sel ? ' sel' : '') + '" onclick="selectSong(' +
-        JSON.stringify(s.artist) + ',' + JSON.stringify(s.title) + ')">' +
+      // Use data attributes to avoid any quote-in-onclick escaping issues
+      html += '<div class="si' + (sel ? ' sel' : '') + '"' +
+        ' data-artist="' + esc(s.artist) + '"' +
+        ' data-title="' + esc(s.title) + '">' +
         '<div class="st">' + hl(s.title, q) + '</div>' +
         (sel ? '<div class="schk">✓</div>' : '') +
         '</div>';
@@ -382,8 +387,19 @@ function renderList(list, q) {
 }
 
 // ══════════════════════════════════════════
-// SONG SELECTION
+// SONG SELECTION — delegated listener on list container
 // ══════════════════════════════════════════
+function initListListener() {
+  document.getElementById('list').addEventListener('click', function(e) {
+    const card = e.target.closest('.si');
+    if (!card) return;
+    const artist = card.dataset.artist;
+    const title  = card.dataset.title;
+    if (!artist || !title) return;
+    selectSong(artist, title);
+  });
+}
+
 function selectSong(artist, title) {
   selected = { artist, title };
   document.getElementById('prev-title').textContent = title;
