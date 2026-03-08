@@ -62,6 +62,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .prev-artist{font-size:12px;color:var(--muted);margin-top:1px}
 .reqbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:17px;font-size:19px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 24px rgba(230,57,70,0.4);transition:transform .1s,background .15s}
 .reqbtn:active{transform:scale(.98);background:#c1121f}
+.cancelbtn{width:100%;background:none;border:1.5px solid rgba(255,255,255,0.12);color:var(--muted);border-radius:14px;padding:12px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:8px;transition:border-color .15s,color .15s}
+.cancelbtn:active{color:var(--text);border-color:rgba(255,255,255,0.3)}
 
 /* SHARED MODAL STYLES */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.87);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -106,6 +108,24 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px}
 .spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* POSITION CARD — shown after request submitted */
+.pos-card{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:400;display:none;align-items:center;justify-content:center;padding:24px}
+.pos-card.show{display:flex}
+.pos-inner{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px 24px 28px;text-align:center;width:100%;max-width:340px}
+.pos-ico{font-size:52px;margin-bottom:12px}
+.pos-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.pos-number{font-family:'Bebas Neue',sans-serif;font-size:96px;line-height:1;color:var(--accent);animation:numPop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes numPop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.pos-total{font-size:14px;color:var(--muted);margin-top:4px}
+.pos-song{background:var(--card2);border-radius:10px;padding:10px 14px;margin:16px 0;text-align:left}
+.pos-song-title{font-size:14px;font-weight:600}
+.pos-song-artist{font-size:12px;color:var(--muted);margin-top:2px}
+.pos-singer{font-size:13px;color:var(--gold);margin-top:8px}
+.pos-status{font-size:13px;color:var(--muted);margin-top:10px;min-height:18px}
+.pos-updating{color:var(--gold)}
+.pos-close{width:100%;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:12px;padding:13px;font-size:15px;font-family:"DM Sans",sans-serif;cursor:pointer;margin-top:16px}
+.pos-close:active{background:rgba(255,255,255,0.05)}
 </style>
 </head>
 <body>
@@ -144,6 +164,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
     </div>
   </div>
   <button class="reqbtn" onclick="openReqModal()">🎤 REQUEST THIS SONG</button>
+  <button class="cancelbtn" onclick="cancelSelection()">✕ Cancel selection</button>
 </div>
 
 <!-- REQUEST NAME MODAL -->
@@ -176,7 +197,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 
 <script>
 // ── CONFIG — replace with your Firebase Realtime DB URL ──
-const FIREBASE = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
+const FIREBASE_URL = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
+//const FIREBASE = 'https://YOUR-PROJECT-default-rtdb.firebaseio.com';
 const STORAGE_KEY = 'sk_singer_name'; // persists across sessions
 
 let songs = [], filtered = [], selected = null, guestName = '';
@@ -400,7 +422,12 @@ function initListListener() {
   });
 }
 
-function selectSong(artist, title) {
+function cancelSelection() {
+  selected = null;
+  document.getElementById('reqbar').classList.remove('vis');
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  renderList(filtered, q);
+}
   selected = { artist, title };
   document.getElementById('prev-title').textContent = title;
   document.getElementById('prev-artist').textContent = artist;
@@ -430,11 +457,15 @@ function closeReqModal() {
   document.getElementById('req-modal').classList.remove('open');
 }
 
+// Position polling state
+let posReqId   = null;  // Firebase ID of the submitted request
+let posPoller  = null;  // interval handle
+let posGiveUp  = null;  // timeout handle — stops polling after 2 minutes
+
 async function submitRequest() {
   const name = document.getElementById('req-name').value.trim();
   if (!name) { document.getElementById('req-name').focus(); return; }
 
-  // Always persist whatever name was used for next session
   guestName = name;
   localStorage.setItem(STORAGE_KEY, name);
 
@@ -446,14 +477,22 @@ async function submitRequest() {
     status: 'waiting'
   };
 
+  // Capture song info for the position card before clearing selected
+  const submittedSong   = selected.title;
+  const submittedArtist = selected.artist;
+  const submittedName   = name;
+
+  let fbId = null;
   try {
-    await fetch(FIREBASE + '/requests.json', {
+    const r  = await fetch(FIREBASE + '/requests.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req)
     });
+    const d  = await r.json();
+    fbId = d.name; // Firebase returns { "name": "-Nabc123..." }
   } catch(e) {
-    console.warn('Firebase unavailable — request not sent to DJ:', e);
+    console.warn('Firebase unavailable:', e);
   }
 
   closeReqModal();
@@ -461,7 +500,88 @@ async function submitRequest() {
   selected = null;
   const q = document.getElementById('search').value.trim().toLowerCase();
   renderList(filtered, q);
-  showToast('✅ Request sent! Good luck, ' + name + '! 🎤');
+
+  // Show position card immediately
+  showPosCard(submittedSong, submittedArtist, submittedName, null, null);
+
+  // Start brief polling to get position from DJ console (max 2 minutes)
+  if (fbId && !FIREBASE.includes('YOUR-PROJECT')) {
+    posReqId = fbId;
+    startPositionPolling(fbId, submittedSong, submittedArtist, submittedName);
+  }
+}
+
+function showPosCard(title, artist, singer, position, total) {
+  document.getElementById('pos-song-title').textContent  = title;
+  document.getElementById('pos-song-artist').textContent = artist;
+  document.getElementById('pos-singer').textContent      = '🎤 ' + singer;
+  if (position !== null) {
+    document.getElementById('pos-number').textContent = position;
+    document.getElementById('pos-total').textContent  = 'of ' + total + ' in the queue';
+    document.getElementById('pos-status').textContent = '';
+    document.getElementById('pos-status').className   = 'pos-status';
+  } else {
+    document.getElementById('pos-number').textContent = '…';
+    document.getElementById('pos-total').textContent  = 'waiting for queue position';
+    document.getElementById('pos-status').innerHTML   = '<span class="pos-updating">Checking with DJ…</span>';
+  }
+  document.getElementById('pos-card').classList.add('show');
+}
+
+function closePosCard() {
+  document.getElementById('pos-card').classList.remove('show');
+  stopPositionPolling();
+}
+
+function startPositionPolling(fbId, title, artist, singer) {
+  stopPositionPolling(); // clear any previous
+
+  // Poll every 5 seconds for up to 2 minutes (24 polls max)
+  let attempts = 0;
+  const MAX_ATTEMPTS = 24;
+  const POLL_MS      = 5000;
+  const STOP_MS      = MAX_ATTEMPTS * POLL_MS; // 2 minutes
+
+  posPoller = setInterval(async () => {
+    attempts++;
+    try {
+      const r    = await fetch(FIREBASE + '/requests/' + fbId + '.json');
+      const data = await r.json();
+
+      if (!data || data.status === 'done' || data.status === 'removed') {
+        // Song has been sung or removed — stop polling
+        document.getElementById('pos-number').textContent = '✓';
+        document.getElementById('pos-total').textContent  = 'Your song has been called!';
+        document.getElementById('pos-status').textContent = '';
+        stopPositionPolling();
+        return;
+      }
+
+      if (data.position != null) {
+        // DJ has written the position back — update the card
+        showPosCard(title, artist, singer, data.position, data.queueTotal || '?');
+      }
+
+    } catch(e) { /* network blip — just wait for next poll */ }
+
+    if (attempts >= MAX_ATTEMPTS) stopPositionPolling();
+  }, POLL_MS);
+
+  // Hard stop after 2 minutes regardless
+  posGiveUp = setTimeout(() => {
+    stopPositionPolling();
+    const statusEl = document.getElementById('pos-status');
+    if (statusEl) {
+      statusEl.textContent = 'Position updates stopped to save battery.';
+      statusEl.className   = 'pos-status';
+    }
+  }, STOP_MS);
+}
+
+function stopPositionPolling() {
+  clearInterval(posPoller);
+  clearTimeout(posGiveUp);
+  posPoller = posGiveUp = null;
 }
 
 function showToast(msg) {
@@ -473,5 +593,22 @@ function showToast(msg) {
 
 init();
 </script>
+
+<!-- POSITION CARD -->
+<div class="pos-card" id="pos-card">
+  <div class="pos-inner">
+    <div class="pos-ico">🎤</div>
+    <div class="pos-title">YOU ARE NUMBER</div>
+    <div class="pos-number" id="pos-number">—</div>
+    <div class="pos-total" id="pos-total">in the queue</div>
+    <div class="pos-song">
+      <div class="pos-song-title" id="pos-song-title"></div>
+      <div class="pos-song-artist" id="pos-song-artist"></div>
+      <div class="pos-singer" id="pos-singer"></div>
+    </div>
+    <div class="pos-status" id="pos-status"></div>
+    <button class="pos-close" onclick="closePosCard()">✕ Close & keep browsing</button>
+  </div>
+</div>
 </body>
 </html>

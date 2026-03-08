@@ -8,107 +8,135 @@
 <style>
 :root{--bg:#07070d;--card:#11111a;--card2:#181824;--border:rgba(255,255,255,0.08);
   --accent:#e63946;--gold:#ffd166;--green:#06d6a0;--blue:#3a86ff;--orange:#fb8500;
-  --text:#f0f0f5;--muted:#7a7a90}
+  --purple:#9b5de5;--text:#f0f0f5;--muted:#7a7a90}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
 
 /* HEADER */
-.header{background:linear-gradient(135deg,#07070d 0%,#150710 100%);padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.dj-badge{background:var(--accent);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;padding:4px 10px;border-radius:6px}
-.htitle{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px}
+.header{background:linear-gradient(135deg,#07070d 0%,#150710 100%);padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dj-badge{background:var(--accent);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;padding:4px 10px;border-radius:6px;flex-shrink:0}
+.htitle{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px}
 .live-wrap{display:flex;align-items:center;gap:6px}
 .live-dot{width:9px;height:9px;background:var(--green);border-radius:50%;animation:blink 1.5s ease-in-out infinite;box-shadow:0 0 8px var(--green)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 .live-label{font-size:13px;color:var(--green);font-weight:600;font-family:'DM Mono',monospace}
 .hright{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:9px 18px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;transition:opacity .2s,transform .1s}
+.btn{padding:8px 16px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;transition:opacity .2s,transform .1s;white-space:nowrap}
 .btn:active{transform:scale(.97)}
 .btn:hover{opacity:.85}
-.btn-accent{background:var(--accent);color:#fff}
 .btn-ghost{background:var(--card2);color:var(--muted);border:1px solid var(--border)}
 .btn-green{background:var(--green);color:#000}
 .btn-gold{background:var(--gold);color:#000}
+.btn-red{background:rgba(230,57,70,0.15);color:var(--accent);border:1px solid rgba(230,57,70,0.3)}
 
 /* LAYOUT */
-.body{display:grid;grid-template-columns:1fr 280px;gap:0;height:calc(100vh - 73px)}
-@media(max-width:800px){.body{grid-template-columns:1fr;height:auto}}
+.body{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 65px)}
+@media(max-width:860px){.body{grid-template-columns:1fr;height:auto}}
 
 /* QUEUE PANEL */
 .queue-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.panel-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
 .panel-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px}
 .queue-count{font-family:'DM Mono',monospace;font-size:12px;background:var(--card2);border:1px solid var(--border);padding:3px 8px;border-radius:20px;color:var(--muted)}
 .auto-badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;margin-left:auto;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
 .auto-on{background:rgba(6,214,160,0.15);color:var(--green);border:1px solid rgba(6,214,160,0.3)}
 .auto-off{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
-
-.queue-list{flex:1;overflow-y:auto;padding:12px}
+.queue-list{flex:1;overflow-y:auto;padding:10px}
 .queue-list::-webkit-scrollbar{width:4px}
-.queue-list::-webkit-scrollbar-track{background:transparent}
 .queue-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
 /* QUEUE CARDS */
-.qcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 14px 14px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;cursor:grab;transition:box-shadow .2s,border-color .2s,opacity .2s,transform .15s;position:relative}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 12px 12px 10px;margin-bottom:7px;display:flex;align-items:flex-start;gap:9px;cursor:grab;transition:box-shadow .2s,border-color .2s,opacity .2s,transform .15s;position:relative}
 .qcard:active{cursor:grabbing}
 .qcard.dragging{opacity:.4;transform:scale(.97)}
 .qcard.drag-over{border-color:var(--blue);box-shadow:0 0 0 2px rgba(58,134,255,0.25)}
 .qcard.flagged{border-color:var(--orange);background:rgba(251,133,0,0.06)}
 .qcard.up-next{border-color:var(--green);background:rgba(6,214,160,0.06)}
-
-.drag-handle{color:var(--muted);font-size:16px;line-height:1;padding-top:1px;flex-shrink:0;cursor:grab}
-.pos-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);min-width:18px;padding-top:1px;flex-shrink:0}
+.drag-handle{color:var(--muted);font-size:15px;line-height:1;padding-top:2px;flex-shrink:0;cursor:grab}
+.pos-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);min-width:16px;padding-top:2px;flex-shrink:0}
 .qinfo{flex:1;min-width:0}
-.qsong{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.qartist{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.qsinger{font-size:12px;color:var(--gold);font-weight:600;margin-top:4px;display:flex;align-items:center;gap:4px}
+.qsong{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qartist{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qsinger{font-size:12px;color:var(--gold);font-weight:600;margin-top:3px;display:flex;align-items:center;gap:4px}
 .qtime{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px}
-.flag-badge{font-size:10px;background:rgba(251,133,0,0.2);color:var(--orange);border-radius:4px;padding:2px 6px;font-weight:600;margin-left:auto;flex-shrink:0;align-self:center}
-.qactions{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
-.qbtn{border:none;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s}
+.flag-badge{font-size:10px;background:rgba(251,133,0,0.2);color:var(--orange);border-radius:4px;padding:2px 5px;font-weight:600;flex-shrink:0;align-self:center}
+.qactions{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.qbtn{border:none;border-radius:7px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;white-space:nowrap}
 .qbtn:hover{opacity:.8}
 .qbtn-done{background:rgba(6,214,160,0.15);color:var(--green)}
 .qbtn-remove{background:rgba(230,57,70,0.12);color:var(--accent)}
-
 .empty-queue{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-queue .ico{font-size:44px;margin-bottom:10px}
 .empty-queue p{font-size:14px;line-height:1.6}
 
-/* DONE tick animation */
-@keyframes doneFlash{0%{background:rgba(6,214,160,0.2)}100%{background:transparent}}
-
 /* STATS PANEL */
-.stats-panel{overflow-y:auto;padding:16px}
-.stats-panel::-webkit-scrollbar{width:4px}
-.stats-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.stats-panel{display:flex;flex-direction:column;overflow:hidden}
 
-.stat-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:12px;color:var(--muted)}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:12px 8px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:color .2s,border-color .2s;letter-spacing:.3px;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.tab-panel{display:none;flex:1;overflow-y:auto;padding:14px}
+.tab-panel.active{display:block}
+.tab-panel::-webkit-scrollbar{width:4px}
+.tab-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
-.stat-label{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
-.stat-val{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;line-height:1;color:var(--text)}
-.stat-sub{font-size:12px;color:var(--muted);margin-top:3px}
+/* STAT CARDS */
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--muted);margin-bottom:10px;margin-top:4px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px}
+.stat-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;line-height:1}
 
-/* SINGER LEADERBOARD */
-.singer-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
-.singer-row:last-child{border-bottom:none}
-.singer-name{flex:1;font-size:13px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.singer-bar-wrap{width:60px}
-.singer-bar{height:4px;background:var(--accent);border-radius:2px;transition:width .4s}
-.singer-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);min-width:16px;text-align:right}
-.singer-flag{font-size:11px;color:var(--orange)}
+/* SINGER HISTORY TABLE */
+.singer-section{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.singer-section-head{padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.singer-section-head:hover{background:rgba(255,255,255,0.03)}
+.singer-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
+.singer-section-name{font-size:13px;font-weight:600;flex:1}
+.singer-section-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.singer-section-arrow{font-size:11px;color:var(--muted);transition:transform .2s}
+.singer-section-arrow.open{transform:rotate(90deg)}
+.singer-songs{display:none;padding:0 12px 10px;border-top:1px solid var(--border)}
+.singer-songs.open{display:block}
+.singer-song-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.singer-song-row:last-child{border-bottom:none}
+.song-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);min-width:16px}
+.song-info{flex:1;min-width:0}
+.song-title-sm{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-artist-sm{font-size:11px;color:var(--muted)}
+.song-time-sm{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap}
+
+/* TOP 50 */
+.top50-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.top50-row:last-child{border-bottom:none}
+.top50-rank{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);min-width:26px;line-height:1}
+.top50-rank.gold{color:var(--gold)}
+.top50-rank.silver{color:#aaa}
+.top50-rank.bronze{color:#cd7f32}
+.top50-info{flex:1;min-width:0}
+.top50-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top50-artist{font-size:11px;color:var(--muted)}
+.top50-bar-wrap{width:40px;display:flex;align-items:center}
+.top50-bar{height:3px;background:var(--accent);border-radius:2px}
+.top50-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);min-width:20px;text-align:right}
+.top50-new{font-size:9px;background:rgba(6,214,160,0.15);color:var(--green);border-radius:3px;padding:1px 4px;font-weight:700}
+
+.balance-info{font-size:12px;color:var(--muted);line-height:1.8;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px}
+.balance-info b{color:var(--text)}
+
+.clear-btn-wrap{text-align:center;margin-top:10px}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:12px 18px;border-radius:10px;font-size:14px;font-weight:500;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s;pointer-events:none;z-index:100;max-width:300px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;z-index:100;max-width:280px}
 .toast.show{opacity:1;transform:translateY(0)}
-
-/* FIREBASE CONFIG BANNER */
-.config-banner{background:rgba(251,133,0,0.1);border:1px solid rgba(251,133,0,0.3);color:var(--orange);padding:10px 20px;font-size:13px;text-align:center;font-weight:500}
+.config-banner{background:rgba(251,133,0,0.1);border:1px solid rgba(251,133,0,0.3);color:var(--orange);padding:9px 18px;font-size:13px;text-align:center;font-weight:500}
 </style>
 </head>
 <body>
 
 <div class="config-banner" id="config-banner" style="display:none">
-  ⚠️ Firebase not configured — running in demo mode. Set FIREBASE_URL in the script to go live.
+  ⚠️ Firebase not configured — running in demo mode.
 </div>
 
 <header class="header">
@@ -117,8 +145,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   <div class="live-wrap"><div class="live-dot"></div><span class="live-label">LIVE</span></div>
   <div class="hright">
     <button class="btn btn-ghost" onclick="refreshQueue()">⟳ Refresh</button>
-    <button class="btn btn-gold" onclick="rebalanceQueue()">⚖️ Rebalance Queue</button>
-    <button class="btn btn-green" onclick="markNextDone()">✓ Mark Next Done</button>
+    <button class="btn btn-gold" onclick="rebalanceQueue()">⚖️ Rebalance</button>
+    <button class="btn btn-green" onclick="markNextDone()">✓ Next Done</button>
   </div>
 </header>
 
@@ -136,36 +164,63 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </div>
   </div>
 
-  <!-- STATS -->
+  <!-- STATS PANEL WITH TABS -->
   <div class="stats-panel">
-    <div class="stat-title">TONIGHT</div>
-
-    <div class="stat-card">
-      <div class="stat-label">In Queue</div>
-      <div class="stat-val" id="s-queue">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Songs Done</div>
-      <div class="stat-val" id="s-done">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Unique Singers</div>
-      <div class="stat-val" id="s-singers">0</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tonight')">🎤 Tonight</button>
+      <button class="tab" onclick="switchTab('top50')">🏆 Top 50</button>
+      <button class="tab" onclick="switchTab('balance')">⚖️ Rules</button>
     </div>
 
-    <div class="stat-title" style="margin-top:16px">SINGER COUNTS</div>
-    <div class="stat-card">
-      <div id="singer-board"></div>
+    <!-- TONIGHT TAB -->
+    <div class="tab-panel active" id="tab-tonight">
+      <div class="sec-title">QUEUE STATUS</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-label">In Queue</div><div class="stat-val" id="s-queue">0</div></div>
+        <div class="stat-card"><div class="stat-label">Sung</div><div class="stat-val" id="s-done">0</div></div>
+        <div class="stat-card"><div class="stat-label">Singers</div><div class="stat-val" id="s-singers">0</div></div>
+      </div>
+
+      <div class="sec-title">SINGER HISTORY</div>
+      <div id="singer-history">
+        <p style="font-size:13px;color:var(--muted)">No songs sung yet tonight.</p>
+      </div>
+
+      <div class="clear-btn-wrap">
+        <button class="btn btn-red" onclick="confirmClearTonight()" style="font-size:12px;padding:6px 14px">🗑 Clear Tonight's History</button>
+      </div>
     </div>
 
-    <div class="stat-title" style="margin-top:16px">BALANCE INFO</div>
-    <div class="stat-card" style="font-size:13px;color:var(--muted);line-height:1.7" id="balance-info">
-      Auto-balance spaces out repeat requests when other singers are waiting.<br><br>
-      <b style="color:var(--text)">Rules:</b><br>
-      • 3+ in queue: no back-to-back<br>
-      • 6+ in queue: max 1 in every 3<br>
-      • 10+ in queue: max 1 in every 5<br><br>
-      Drag cards to manually reorder. Auto-balance re-applies on new requests.
+    <!-- TOP 50 TAB -->
+    <div class="tab-panel" id="tab-top50">
+      <div class="sec-title">ALL-TIME TOP 50 SONGS</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Updated each time a song is marked done. Persists across events.</p>
+      <div id="top50-list">
+        <p style="font-size:13px;color:var(--muted)">No history yet.</p>
+      </div>
+      <div class="clear-btn-wrap" style="margin-top:12px">
+        <button class="btn btn-red" onclick="confirmClearTop50()" style="font-size:12px;padding:6px 14px">🗑 Reset All-Time History</button>
+      </div>
+    </div>
+
+    <!-- BALANCE RULES TAB -->
+    <div class="tab-panel" id="tab-balance">
+      <div class="sec-title">ANTI-DOMINANCE RULES</div>
+      <div class="balance-info">
+        Auto-balance spaces out repeat requests based on how many other singers are waiting — nobody gets penalised when the queue is quiet.<br><br>
+        <b>Queue size → rule:</b><br>
+        • Under 3 songs → no restriction<br>
+        • 3–5 songs → no back-to-back<br>
+        • 6–9 songs → max 1 in every 3 slots<br>
+        • 10+ songs → max 1 in every 5 slots<br><br>
+        <b>⚠ BACK-TO-BACK</b> badge appears on cards that violate the current rule after a manual drag.<br><br>
+        Drag cards to reorder manually at any time. Hit <b>⚖️ Rebalance</b> to re-apply the rules.
+      </div>
+
+      <div class="sec-title" style="margin-top:16px">IN QUEUE NOW</div>
+      <div class="stat-card" id="singer-board-wrap">
+        <div id="singer-board"><p style="font-size:13px;color:var(--muted)">No singers yet</p></div>
+      </div>
     </div>
   </div>
 
@@ -176,13 +231,76 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <script>
 // ── CONFIG ──
 const FIREBASE_URL = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
+//const FIREBASE_URL = 'https://YOUR-PROJECT-default-rtdb.firebaseio.com';
+//const FIREBASE = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
+
+// ── STORAGE KEYS ──
+const KEY_TONIGHT = 'sk_tonight_' + todayKey();   // resets each day automatically
+const KEY_TOP50   = 'sk_top50_alltime';            // persists forever
 
 // ── STATE ──
-let queue = [];        // ordered array of request objects {id, singer, artist, title, ts, status}
-let doneCount = 0;
+let queue       = [];
 let autoBalance = true;
-let pollInterval = null;
-let dragSrcIdx = null;
+let dragSrcIdx  = null;
+let activeTab   = 'tonight';
+
+// Tonight: { singerName: [ {title, artist, ts}, ... ] }
+let tonightData = loadTonightData();
+// Top50: { 'TITLE|||ARTIST': count }
+let top50Data   = loadTop50Data();
+
+// ══════════════════════════════════════════
+// DATE KEY — used to auto-reset tonight data
+// ══════════════════════════════════════════
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+// ══════════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════════
+function loadTonightData() {
+  try {
+    const raw = localStorage.getItem(KEY_TONIGHT);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function saveTonightData() {
+  localStorage.setItem(KEY_TONIGHT, JSON.stringify(tonightData));
+}
+
+function loadTop50Data() {
+  try {
+    const raw = localStorage.getItem(KEY_TOP50);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function saveTop50Data() {
+  localStorage.setItem(KEY_TOP50, JSON.stringify(top50Data));
+}
+
+// ══════════════════════════════════════════
+// RECORD A SUNG SONG
+// Called when DJ marks a song as done
+// ══════════════════════════════════════════
+function recordSung(item) {
+  // Tonight history
+  if (!tonightData[item.singer]) tonightData[item.singer] = [];
+  tonightData[item.singer].push({
+    title:  item.title,
+    artist: item.artist,
+    ts:     Date.now()
+  });
+  saveTonightData();
+
+  // All-time top 50
+  const key = item.title + '|||' + item.artist;
+  top50Data[key] = (top50Data[key] || 0) + 1;
+  saveTop50Data();
+}
 
 // ══════════════════════════════════════════
 // INIT
@@ -194,20 +312,41 @@ window.addEventListener('DOMContentLoaded', () => {
   } else {
     startPolling();
   }
+  renderStats();
 });
 
 function loadDemoData() {
   queue = [
-    { id:'1', singer:'Louis',  artist:'QUEEN',       title:'Bohemian Rhapsody',    ts: Date.now()-600000, status:'waiting' },
-    { id:'2', singer:'Shana',  artist:'ABBA',        title:'Dancing Queen',        ts: Date.now()-500000, status:'waiting' },
-    { id:'3', singer:'Louis',  artist:'AC/DC',       title:'Highway to Hell',      ts: Date.now()-400000, status:'waiting' },
-    { id:'4', singer:'Mike',   artist:'EAGLES',      title:'Hotel California',     ts: Date.now()-300000, status:'waiting' },
-    { id:'5', singer:'Louis',  artist:'BON JOVI',    title:"Livin' on a Prayer",  ts: Date.now()-200000, status:'waiting' },
-    { id:'6', singer:'Sarah',  artist:'ADELE',       title:'Rolling in the Deep',  ts: Date.now()-100000, status:'waiting' },
-    { id:'7', singer:'Louis',  artist:'JOURNEY',     title:"Don't Stop Believin'", ts: Date.now()-50000,  status:'waiting' },
+    { id:'1', singer:'Louis',  artist:'QUEEN',    title:'Bohemian Rhapsody',    ts:Date.now()-600000, status:'waiting' },
+    { id:'2', singer:'Shana',  artist:'ABBA',     title:'Dancing Queen',        ts:Date.now()-500000, status:'waiting' },
+    { id:'3', singer:'Louis',  artist:'AC/DC',    title:'Highway to Hell',      ts:Date.now()-400000, status:'waiting' },
+    { id:'4', singer:'Mike',   artist:'EAGLES',   title:'Hotel California',     ts:Date.now()-300000, status:'waiting' },
+    { id:'5', singer:'Louis',  artist:'BON JOVI', title:"Livin' on a Prayer",   ts:Date.now()-200000, status:'waiting' },
+    { id:'6', singer:'Sarah',  artist:'ADELE',    title:'Rolling in the Deep',  ts:Date.now()-100000, status:'waiting' },
+    { id:'7', singer:'Louis',  artist:'JOURNEY',  title:"Don't Stop Believin'", ts:Date.now()-50000,  status:'waiting' },
   ];
+  // Seed some demo tonight history
+  if (Object.keys(tonightData).length === 0) {
+    tonightData = {
+      'Louis': [
+        { title:'Sweet Home Alabama', artist:'LYNYRD SKYNYRD', ts:Date.now()-7200000 },
+        { title:'Wonderwall',         artist:'OASIS',          ts:Date.now()-5400000 },
+      ],
+      'Shana': [
+        { title:'Total Eclipse of the Heart', artist:'BONNIE TYLER', ts:Date.now()-3600000 },
+      ]
+    };
+    saveTonightData();
+    top50Data['Sweet Home Alabama|||LYNYRD SKYNYRD'] = 4;
+    top50Data['Wonderwall|||OASIS'] = 3;
+    top50Data['Total Eclipse of the Heart|||BONNIE TYLER'] = 6;
+    top50Data['Bohemian Rhapsody|||QUEEN'] = 8;
+    top50Data['Dancing Queen|||ABBA'] = 5;
+    saveTop50Data();
+  }
   if (autoBalance) applyBalance();
   render();
+  renderStats();
 }
 
 // ══════════════════════════════════════════
@@ -215,12 +354,12 @@ function loadDemoData() {
 // ══════════════════════════════════════════
 function startPolling() {
   fetchQueue();
-  pollInterval = setInterval(fetchQueue, 4000);
+  setInterval(fetchQueue, 4000);
 }
 
 async function fetchQueue() {
   try {
-    const r = await fetch(FIREBASE_URL + '/requests.json');
+    const r    = await fetch(FIREBASE_URL + '/requests.json');
     const data = await r.json();
     if (!data) { queue = []; render(); return; }
 
@@ -229,20 +368,15 @@ async function fetchQueue() {
       .filter(r => r.status === 'waiting')
       .sort((a,b) => a.ts - b.ts);
 
-    // Merge: preserve manual ordering of existing items, append new ones
     const existingIds = new Set(queue.map(q => q.id));
-    const newItems = incoming.filter(r => !existingIds.has(r.id));
-    // Remove items no longer in Firebase (deleted/done elsewhere)
+    const newItems    = incoming.filter(r => !existingIds.has(r.id));
     queue = queue.filter(q => incoming.find(r => r.id === q.id));
-    // Append genuinely new requests
     if (newItems.length) {
       queue.push(...newItems);
       if (autoBalance) applyBalance();
     }
     render();
-  } catch(e) {
-    console.warn('Firebase fetch error', e);
-  }
+  } catch(e) { console.warn('Firebase fetch error', e); }
 }
 
 async function refreshQueue() {
@@ -251,73 +385,47 @@ async function refreshQueue() {
 }
 
 // ══════════════════════════════════════════
-// ANTI-DOMINANCE BALANCING
+// ANTI-DOMINANCE
 // ══════════════════════════════════════════
-// Logic scales with queue depth — no one gets penalised when queue is short.
-// Rules:
-//   < 3 items  → no restriction
-//   3–5 items  → no back-to-back (same singer can't appear consecutively)
-//   6–9 items  → same singer max 1 in every 3 positions
-//   10+ items  → same singer max 1 in every 5 positions
-
-function getMaxFrequency(queueLength) {
-  if (queueLength < 3)  return Infinity; // no restriction
-  if (queueLength < 6)  return 2;        // 1 in every 2 (no back-to-back)
-  if (queueLength < 10) return 3;        // 1 in every 3
-  return 5;                              // 1 in every 5
+function getMaxFrequency(n) {
+  if (n < 3)  return Infinity;
+  if (n < 6)  return 2;
+  if (n < 10) return 3;
+  return 5;
 }
 
 function applyBalance() {
-  if (queue.length < 3) return; // nothing to do
-
+  if (queue.length < 3) return;
   const maxFreq = getMaxFrequency(queue.length);
   if (maxFreq === Infinity) return;
 
-  // Use a weighted round-robin style insertion
-  // Build singer buckets in order of first appearance
-  const singerQueues = {};
-  const singerOrder = [];
+  const singerQueues = {}, singerOrder = [];
   queue.forEach(item => {
-    if (!singerQueues[item.singer]) {
-      singerQueues[item.singer] = [];
-      singerOrder.push(item.singer);
-    }
+    if (!singerQueues[item.singer]) { singerQueues[item.singer] = []; singerOrder.push(item.singer); }
     singerQueues[item.singer].push(item);
   });
 
   const result = [];
-  let lastSinger = null;
-  let consecutiveCount = 0;
   let safety = 0;
-  const totalItems = queue.length;
+  const total = queue.length;
 
-  while (result.length < totalItems && safety++ < totalItems * 3) {
+  while (result.length < total && safety++ < total * 3) {
     let placed = false;
-
     for (const singer of singerOrder) {
       const bucket = singerQueues[singer];
-      if (!bucket || !bucket.length) continue;
-
-      // Check spacing constraint
-      const recentSingers = result.slice(-Math.max(1, maxFreq - 1)).map(r => r.singer);
-      if (maxFreq < Infinity && recentSingers.filter(s => s === singer).length >= 1) {
-        continue; // this singer appeared too recently
-      }
-
+      if (!bucket?.length) continue;
+      const recent = result.slice(-Math.max(1, maxFreq-1)).map(r => r.singer);
+      if (recent.filter(s => s === singer).length >= 1) continue;
       result.push(bucket.shift());
       placed = true;
       break;
     }
-
-    // Safety valve: if no one could be placed without violation, take the next available
     if (!placed) {
       for (const singer of singerOrder) {
-        const bucket = singerQueues[singer];
-        if (bucket && bucket.length) { result.push(bucket.shift()); break; }
+        if (singerQueues[singer]?.length) { result.push(singerQueues[singer].shift()); break; }
       }
     }
   }
-
   queue = result;
 }
 
@@ -332,30 +440,31 @@ function toggleAutoBalance() {
   autoBalance = !autoBalance;
   const btn = document.getElementById('auto-toggle');
   btn.textContent = autoBalance ? '⚖ Auto-balance ON' : '⚖ Auto-balance OFF';
-  btn.className = 'auto-badge ' + (autoBalance ? 'auto-on' : 'auto-off');
-  showToast(autoBalance ? '⚖️ Auto-balance enabled' : '⚖️ Auto-balance disabled');
+  btn.className   = 'auto-badge ' + (autoBalance ? 'auto-on' : 'auto-off');
+  showToast(autoBalance ? '⚖️ Auto-balance ON' : '⚖️ Auto-balance OFF');
 }
 
 // ══════════════════════════════════════════
 // MARK DONE / REMOVE
 // ══════════════════════════════════════════
 async function markDone(id) {
+  const item = queue.find(q => q.id === id);
+  if (item) recordSung(item);   // ← record to history
   queue = queue.filter(q => q.id !== id);
-  doneCount++;
   try {
     await fetch(FIREBASE_URL + '/requests/' + id + '.json', {
-      method: 'PATCH', body: JSON.stringify({ status: 'done' })
+      method:'PATCH', body:JSON.stringify({status:'done'})
     });
   } catch(e) {}
   render();
+  renderStats();
 }
 
 async function removeItem(id) {
   queue = queue.filter(q => q.id !== id);
-  try {
-    await fetch(FIREBASE_URL + '/requests/' + id + '.json', { method: 'DELETE' });
-  } catch(e) {}
+  try { await fetch(FIREBASE_URL + '/requests/' + id + '.json', {method:'DELETE'}); } catch(e) {}
   render();
+  renderStats();
 }
 
 function markNextDone() {
@@ -365,20 +474,38 @@ function markNextDone() {
 }
 
 // ══════════════════════════════════════════
-// RENDER
+// RENDER QUEUE
 // ══════════════════════════════════════════
+// Write queue positions to Firebase so singers can read their number.
+// Debounced 1s — avoids hammering on rapid drags.
+let posWriteTimer = null;
+function schedulePositionWrite() {
+  if (FIREBASE_URL.includes('YOUR-PROJECT')) return;
+  clearTimeout(posWriteTimer);
+  posWriteTimer = setTimeout(() => {
+    const total = queue.length;
+    queue.forEach((item, idx) => {
+      fetch(FIREBASE_URL + '/requests/' + item.id + '.json', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ position: idx + 1, queueTotal: total })
+      }).catch(() => {});
+    });
+  }, 1000);
+}
+
 function render() {
   const el = document.getElementById('queue-list');
   document.getElementById('queue-count').textContent = queue.length + ' in queue';
   document.getElementById('s-queue').textContent = queue.length;
-  document.getElementById('s-done').textContent = doneCount;
 
-  // Singer counts
+  // Push updated positions to Firebase after every queue change
+  schedulePositionWrite();
+
+  // unique singers in queue (for balance tab)
   const singerCounts = {};
-  queue.forEach(q => { singerCounts[q.singer] = (singerCounts[q.singer] || 0) + 1; });
-  const uniqueSingers = Object.keys(singerCounts);
-  document.getElementById('s-singers').textContent = uniqueSingers.length;
-  renderLeaderboard(singerCounts);
+  queue.forEach(q => { singerCounts[q.singer] = (singerCounts[q.singer]||0) + 1; });
+  renderBalanceBoard(singerCounts);
 
   if (!queue.length) {
     el.innerHTML = '<div class="empty-queue"><div class="ico">🎤</div><p>No requests yet.<br>Waiting for singers…</p></div>';
@@ -389,19 +516,13 @@ function render() {
   let html = '';
 
   queue.forEach((item, idx) => {
-    const isNext = idx === 0;
-    const count = singerCounts[item.singer] || 0;
-    // Flag if this singer has >1 request AND queue is large enough for rules to apply
-    const isFlagged = count > 1 && queue.length >= 3;
-    const timeAgo = formatAge(item.ts);
+    const isNext  = idx === 0;
+    const count   = singerCounts[item.singer] || 0;
+    const recent  = queue.slice(Math.max(0,idx-maxFreq+1), idx).map(r => r.singer);
+    const flagged = maxFreq < Infinity && recent.includes(item.singer);
 
-    // Check if this position violates spacing (for visual warning after manual drag)
-    const recentSingers = queue.slice(Math.max(0, idx - maxFreq + 1), idx).map(r => r.singer);
-    const spacingViolation = maxFreq < Infinity && recentSingers.includes(item.singer);
-
-    html += `<div class="qcard${isNext?' up-next':''}${spacingViolation?' flagged':''}"
+    html += `<div class="qcard${isNext?' up-next':''}${flagged?' flagged':''}"
       draggable="true"
-      data-idx="${idx}"
       ondragstart="dragStart(event,${idx})"
       ondragover="dragOver(event)"
       ondrop="drop(event,${idx})"
@@ -412,13 +533,10 @@ function render() {
       <div class="qinfo">
         <div class="qsong" title="${esc(item.title)}">${esc(item.title)}</div>
         <div class="qartist">${esc(item.artist)}</div>
-        <div class="qsinger">
-          🎤 ${esc(item.singer)}
-          ${count > 1 ? '<span style="color:var(--muted);font-weight:400;font-size:11px">('+count+' in queue)</span>' : ''}
-        </div>
-        <div class="qtime">${timeAgo}</div>
+        <div class="qsinger">🎤 ${esc(item.singer)}${count>1?' <span style="color:var(--muted);font-weight:400;font-size:11px">('+count+' in queue)</span>':''}</div>
+        <div class="qtime">${formatAge(item.ts)}</div>
       </div>
-      ${spacingViolation ? '<div class="flag-badge">⚠ BACK-TO-BACK</div>' : ''}
+      ${flagged?'<div class="flag-badge">⚠ BACK-TO-BACK</div>':''}
       <div class="qactions">
         <button class="qbtn qbtn-done" onclick="markDone('${item.id}')">✓ Done</button>
         <button class="qbtn qbtn-remove" onclick="removeItem('${item.id}')">✕</button>
@@ -429,56 +547,187 @@ function render() {
   el.innerHTML = html;
 }
 
-function renderLeaderboard(counts) {
-  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
-  const max = sorted[0]?.[1] || 1;
-  const maxFreq = getMaxFrequency(queue.length);
+// ══════════════════════════════════════════
+// RENDER STATS (both tabs)
+// ══════════════════════════════════════════
+function renderStats() {
+  renderTonightTab();
+  renderTop50Tab();
+}
+
+function renderTonightTab() {
+  // Totals
+  const singers    = Object.keys(tonightData);
+  const totalSung  = singers.reduce((sum, s) => sum + tonightData[s].length, 0);
+  document.getElementById('s-done').textContent    = totalSung;
+  document.getElementById('s-singers').textContent = singers.length;
+
+  const el = document.getElementById('singer-history');
+  if (!singers.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--muted)">No songs sung yet tonight.</p>';
+    return;
+  }
+
+  // Sort singers by total songs sung (most first)
+  const sorted = singers.sort((a,b) => tonightData[b].length - tonightData[a].length);
+  const colors = ['#e63946','#3a86ff','#06d6a0','#ffd166','#9b5de5','#fb8500','#ff6b6b','#118ab2'];
+
   let html = '';
-  sorted.forEach(([name, n]) => {
-    const pct = Math.round((n/max)*100);
-    const flagged = n > 1 && queue.length >= 3;
-    html += `<div class="singer-row">
-      <div class="singer-name">${esc(name)}</div>
-      <div class="singer-bar-wrap"><div class="singer-bar" style="width:${pct}%"></div></div>
-      <div class="singer-count">${n}</div>
-      ${flagged ? '<div class="singer-flag">⚠</div>' : ''}
+  sorted.forEach((singer, si) => {
+    const songs  = tonightData[singer];
+    const colour = colors[si % colors.length];
+    const initials = singer.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const sectionId = 'ss-' + si;
+
+    html += `<div class="singer-section">
+      <div class="singer-section-head" onclick="toggleSingerSection('${sectionId}')">
+        <div class="singer-avatar" style="background:${colour}">${esc(initials)}</div>
+        <div class="singer-section-name">${esc(singer)}</div>
+        <div class="singer-section-count">${songs.length} song${songs.length!==1?'s':''}</div>
+        <div class="singer-section-arrow" id="arr-${sectionId}">▶</div>
+      </div>
+      <div class="singer-songs" id="${sectionId}">`;
+
+    songs.forEach((s, i) => {
+      html += `<div class="singer-song-row">
+        <div class="song-num">${i+1}</div>
+        <div class="song-info">
+          <div class="song-title-sm">${esc(s.title)}</div>
+          <div class="song-artist-sm">${esc(s.artist)}</div>
+        </div>
+        <div class="song-time-sm">${formatTime(s.ts)}</div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function toggleSingerSection(id) {
+  const songs = document.getElementById(id);
+  const arrow = document.getElementById('arr-' + id);
+  const open  = songs.classList.toggle('open');
+  arrow.classList.toggle('open', open);
+}
+
+function renderTop50Tab() {
+  const el = document.getElementById('top50-list');
+  const entries = Object.entries(top50Data)
+    .map(([key, count]) => {
+      const [title, artist] = key.split('|||');
+      return { title, artist, count };
+    })
+    .sort((a,b) => b.count - a.count)
+    .slice(0, 50);
+
+  if (!entries.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--muted)">No history yet. Songs appear here as they are marked done.</p>';
+    return;
+  }
+
+  const maxCount = entries[0].count;
+  let html = '';
+
+  entries.forEach((e, i) => {
+    const rank = i + 1;
+    const pct  = Math.round((e.count / maxCount) * 100);
+    const rankClass = rank===1 ? 'gold' : rank===2 ? 'silver' : rank===3 ? 'bronze' : '';
+    // Mark songs sung tonight
+    const sungTonight = Object.values(tonightData).flat().some(s => s.title === e.title && s.artist === e.artist);
+
+    html += `<div class="top50-row">
+      <div class="top50-rank ${rankClass}">${rank}</div>
+      <div class="top50-info">
+        <div class="top50-title">${esc(e.title)}${sungTonight?' <span class="top50-new">TONIGHT</span>':''}</div>
+        <div class="top50-artist">${esc(e.artist)}</div>
+      </div>
+      <div class="top50-bar-wrap"><div class="top50-bar" style="width:${pct}%"></div></div>
+      <div class="top50-count">${e.count}</div>
     </div>`;
   });
-  document.getElementById('singer-board').innerHTML = html || '<p style="font-size:13px;color:var(--muted)">No singers yet</p>';
+
+  el.innerHTML = html;
+}
+
+function renderBalanceBoard(counts) {
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const max    = sorted[0]?.[1] || 1;
+  const mf     = getMaxFrequency(queue.length);
+  let html = '';
+  sorted.forEach(([name, n]) => {
+    const pct     = Math.round((n/max)*100);
+    const flagged = n > 1 && queue.length >= 3;
+    html += `<div class="top50-row">
+      <div class="top50-info"><div class="top50-title">${esc(name)}</div></div>
+      <div class="top50-bar-wrap"><div class="top50-bar" style="width:${pct}%;background:var(--gold)"></div></div>
+      <div class="top50-count">${n}</div>
+      ${flagged?'<div style="font-size:11px;color:var(--orange)">⚠</div>':''}
+    </div>`;
+  });
+  document.getElementById('singer-board').innerHTML =
+    html || '<p style="font-size:13px;color:var(--muted)">No singers in queue</p>';
 }
 
 // ══════════════════════════════════════════
-// DRAG & DROP REORDER
+// TABS
+// ══════════════════════════════════════════
+function switchTab(name) {
+  activeTab = name;
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['tonight','top50','balance'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// CLEAR HISTORY
+// ══════════════════════════════════════════
+function confirmClearTonight() {
+  if (confirm('Clear tonight\'s entire singer history? This cannot be undone.')) {
+    tonightData = {};
+    saveTonightData();
+    renderStats();
+    showToast('🗑 Tonight\'s history cleared');
+  }
+}
+
+function confirmClearTop50() {
+  if (confirm('Reset ALL-TIME top 50 history? This permanently deletes all historical data.')) {
+    top50Data = {};
+    saveTop50Data();
+    renderStats();
+    showToast('🗑 All-time history reset');
+  }
+}
+
+// ══════════════════════════════════════════
+// DRAG & DROP
 // ══════════════════════════════════════════
 function dragStart(e, idx) {
   dragSrcIdx = idx;
   e.dataTransfer.effectAllowed = 'move';
   setTimeout(() => e.target.classList.add('dragging'), 0);
 }
-
 function dragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   e.currentTarget.classList.add('drag-over');
 }
-
-function dragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
-
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 function drop(e, targetIdx) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
-
-  // Reorder
   const moved = queue.splice(dragSrcIdx, 1)[0];
   queue.splice(targetIdx, 0, moved);
   dragSrcIdx = null;
   render();
-  showToast('↕ Queue reordered manually');
+  showToast('↕ Queue reordered');
 }
-
 function dragEnd(e) {
   e.target.classList.remove('dragging');
   document.querySelectorAll('.qcard').forEach(c => c.classList.remove('drag-over'));
@@ -489,10 +738,15 @@ function dragEnd(e) {
 // HELPERS
 // ══════════════════════════════════════════
 function formatAge(ts) {
-  const mins = Math.floor((Date.now() - ts) / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return mins + 'm ago';
-  return Math.floor(mins/60) + 'h ' + (mins%60) + 'm ago';
+  const m = Math.floor((Date.now()-ts)/60000);
+  if (m < 1)  return 'just now';
+  if (m < 60) return m + 'm ago';
+  return Math.floor(m/60) + 'h ' + (m%60) + 'm ago';
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
 }
 
 function esc(s) {
