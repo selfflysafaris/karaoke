@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sonic Karaoke — Request a Song</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#08080f;--card:#111118;--card2:#1a1a24;--border:rgba(255,255,255,0.08);--accent:#e63946;--glow:rgba(230,57,70,0.35);--gold:#ffd166;--text:#eeeef5;--muted:#7a7a90;--success:#06d6a0}
@@ -45,6 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .si:active{background:rgba(230,57,70,0.12)}
 .si.sel{background:rgba(230,57,70,0.18);border-color:var(--accent)}
 .st{flex:1;line-height:1.35}
+.st-artist{font-size:.78em;color:var(--accent);font-weight:700;display:block;margin-top:1px;letter-spacing:.06em}
 .st em{color:var(--gold);font-style:normal;font-weight:700}
 .schk{color:var(--accent);font-size:20px;flex-shrink:0}
 .sz-xl .alabel{font-size:28px}.sz-xl .st{font-size:22px}
@@ -54,6 +56,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty .ico{font-size:52px;margin-bottom:12px}
 .empty p{font-size:16px;line-height:1.6}
+
+/* A–Z INDEX */
+.az-index{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;align-items:center;padding:4px 2px;gap:1px;pointer-events:all}
+.az-index.hidden{display:none}
+.az-letter{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);width:22px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:color .1s,background .1s}
+.az-letter:active,.az-letter.az-active{color:#fff;background:var(--accent)}
 
 /* REQUEST BAR */
 .reqbar{position:fixed;bottom:0;left:0;right:0;padding:16px 16px 32px;background:linear-gradient(to top,var(--bg) 65%,transparent);transform:translateY(110%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:100}
@@ -251,6 +259,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 <div id="list" class="list">
   <div class="loading"><div class="spin"></div><p style="color:var(--muted);font-size:14px">Loading songs…</p></div>
 </div>
+
+<!-- A–Z INDEX -->
+<div class="az-index hidden" id="az-index"></div>
 
 <!-- STICKY REQUEST BAR -->
 <div class="reqbar" id="reqbar">
@@ -639,6 +650,22 @@ function clearSearch() {
   document.getElementById('search').focus();
 }
 
+function jumpToLetter(letter) {
+  const target = document.querySelector('#list .ag[data-az="' + letter + '"]');
+  if (target) {
+    // Account for sticky header height
+    const headerH = document.querySelector('.header').offsetHeight;
+    const top = target.getBoundingClientRect().top + window.scrollY - headerH - 8;
+    window.scrollTo({ top, behavior: 'smooth' });
+    // Flash the letter briefly
+    const btn = document.querySelector('.az-letter[data-letter="' + letter + '"]');
+    if (btn) {
+      btn.classList.add('az-active');
+      setTimeout(() => btn.classList.remove('az-active'), 400);
+    }
+  }
+}
+
 // ══════════════════════════════════════════
 // RENDER SONG LIST
 // ══════════════════════════════════════════
@@ -678,15 +705,29 @@ function renderList(list, q) {
     byArtist[s.artist].push(s);
   });
 
+  // Build A–Z index (browse mode only — no query active)
+  const azEl = document.getElementById('az-index');
+  if (isFull) {
+    const letters = [...new Set(artistOrder.map(a => a[0].toUpperCase()))];
+    azEl.innerHTML = letters.map(l =>
+      '<div class="az-letter" data-letter="' + l + '" onclick="jumpToLetter(\'' + l + '\')">' + l + '</div>'
+    ).join('');
+    azEl.classList.remove('hidden');
+  } else {
+    azEl.classList.add('hidden');
+  }
+
   let html = '';
   artistOrder.forEach(artist => {
-    html += '<div class="ag"><div class="alabel">' + hl(artist, q) + '</div>';
+    const firstChar = artist[0].toUpperCase();
+    html += '<div class="ag" data-az="' + esc(firstChar) + '"><div class="alabel">' + hl(artist, q) + '</div>';
     byArtist[artist].forEach(s => {
       const sel = selected && selected.artist === s.artist && selected.title === s.title;
       html += '<div class="si' + (sel ? ' sel' : '') + '"' +
         ' data-artist="' + esc(s.artist) + '"' +
         ' data-title="'  + esc(s.title)  + '">' +
-        '<div class="st">' + hl(s.title, q) + '</div>' +
+        '<div class="st"><span>' + hl(s.title, q) + '</span>' +
+        '<span class="st-artist">' + hl(s.artist, q) + '</span></div>' +
         (sel ? '<div class="schk">✓</div>' : '') +
         '</div>';
     });
