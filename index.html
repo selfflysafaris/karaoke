@@ -18,7 +18,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 @keyframes ripple{0%{box-shadow:0 0 0 0 var(--glow)}70%{box-shadow:0 0 0 14px rgba(230,57,70,0)}100%{box-shadow:0 0 0 0 rgba(230,57,70,0)}}
 .htitle{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1}
 .hsub{font-size:11px;color:var(--muted);margin-top:2px}
-.hcount{font-family:'DM Mono',monospace;font-size:11px;background:var(--card2);border:1px solid var(--border);padding:4px 8px;border-radius:20px;color:var(--muted);white-space:nowrap;margin-left:auto}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hcount{font-family:'DM Mono',monospace;font-size:11px;background:var(--card2);border:1px solid var(--border);padding:4px 8px;border-radius:20px;color:var(--muted);white-space:nowrap}
+.help-btn{width:28px;height:28px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif}
+.help-btn:active{background:var(--card)}
 
 /* SEARCH */
 .swrap{position:relative}
@@ -42,13 +45,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .st{flex:1;line-height:1.35}
 .st em{color:var(--gold);font-style:normal;font-weight:700}
 .schk{color:var(--accent);font-size:20px;flex-shrink:0}
-
-/* Dynamic font sizing as results narrow */
 .sz-xl .alabel{font-size:28px}.sz-xl .st{font-size:22px}
 .sz-lg .alabel{font-size:24px}.sz-lg .st{font-size:19px}
 .sz-md .alabel{font-size:21px}.sz-md .st{font-size:17px}
 .sz-sm .alabel{font-size:19px}.sz-sm .st{font-size:15px}
-
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty .ico{font-size:52px;margin-bottom:12px}
 .empty p{font-size:16px;line-height:1.6}
@@ -88,13 +88,27 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .wico{font-size:54px;text-align:center;margin-bottom:14px}
 .wtitle{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;text-align:center;margin-bottom:8px}
 .wsub{font-size:15px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.6;padding:0 8px}
-/* Returning user greeting */
 .wreturn-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--gold);text-align:center;margin-bottom:4px}
 .wreturn-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:24px}
 .wlabel{font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:500}
 .wbtn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:18px;font-size:21px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 24px rgba(230,57,70,0.4);margin-top:10px;transition:transform .1s}
 .wbtn:active{transform:scale(.98)}
 .wbtn-ghost{width:100%;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:14px;padding:14px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:10px}
+
+/* HOW-TO INSTRUCTIONS SCREEN */
+.howto{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:350;display:none;align-items:flex-end}
+.howto.show{display:flex}
+.howto-sheet{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:28px 20px 44px;border-top:1px solid var(--border);max-height:90vh;overflow-y:auto}
+.howto-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;text-align:center;margin-bottom:4px}
+.howto-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:22px}
+.step{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.step:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-ico{font-size:28px;flex-shrink:0;width:38px;text-align:center;margin-top:2px}
+.step-body{}
+.step-title{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text)}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.step-desc b{color:var(--gold)}
+.howto-dismiss{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:17px;font-size:19px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;margin-top:22px;box-shadow:0 4px 24px rgba(230,57,70,0.4)}
 
 /* TOAST */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-90px);background:#0d2b1a;border:1px solid #1a5c34;color:var(--success);padding:14px 24px;border-radius:12px;font-size:15px;font-weight:600;z-index:500;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.6);pointer-events:none}
@@ -109,23 +123,71 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 .spin{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* POSITION CARD — shown after request submitted */
-.pos-card{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:400;display:none;align-items:center;justify-content:center;padding:24px}
+/* POSITION CARD */
+.pos-card{position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:400;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 .pos-card.show{display:flex}
-.pos-inner{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px 24px 28px;text-align:center;width:100%;max-width:340px}
-.pos-ico{font-size:52px;margin-bottom:12px}
-.pos-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
-.pos-number{font-family:'Bebas Neue',sans-serif;font-size:96px;line-height:1;color:var(--accent);animation:numPop .4s cubic-bezier(.34,1.56,.64,1)}
+.pos-inner{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:28px 20px 24px;text-align:center;width:100%;max-width:380px;margin:auto}
+.pos-ico{font-size:44px;margin-bottom:10px}
+.pos-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+.pos-number{font-family:'Bebas Neue',sans-serif;font-size:88px;line-height:1;color:var(--accent)}
 @keyframes numPop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
-.pos-total{font-size:14px;color:var(--muted);margin-top:4px}
-.pos-song{background:var(--card2);border-radius:10px;padding:10px 14px;margin:16px 0;text-align:left}
+.pos-number.pop{animation:numPop .35s cubic-bezier(.34,1.56,.64,1)}
+.pos-total{font-size:13px;color:var(--muted);margin-top:3px}
+.pos-myreq{background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.25);border-radius:10px;padding:10px 14px;margin:14px 0 10px;text-align:left}
+.pos-myreq-label{font-size:10px;color:var(--accent);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
 .pos-song-title{font-size:14px;font-weight:600}
-.pos-song-artist{font-size:12px;color:var(--muted);margin-top:2px}
-.pos-singer{font-size:13px;color:var(--gold);margin-top:8px}
-.pos-status{font-size:13px;color:var(--muted);margin-top:10px;min-height:18px}
+.pos-song-artist{font-size:12px;color:var(--muted);margin-top:1px}
+.pos-singer{font-size:12px;color:var(--gold);margin-top:4px}
+.pos-status{font-size:12px;color:var(--muted);margin:6px 0 2px;min-height:16px}
+.pos-phase{font-size:10px;color:rgba(255,255,255,0.2);font-family:'DM Mono',monospace}
 .pos-updating{color:var(--gold)}
-.pos-close{width:100%;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:12px;padding:13px;font-size:15px;font-family:"DM Sans",sans-serif;cursor:pointer;margin-top:16px}
+
+/* QUEUE LIST ON POSITION CARD */
+.pos-queue-section{margin-top:12px;text-align:left}
+.pos-queue-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.pos-queue-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:blink 1.5s ease-in-out infinite;box-shadow:0 0 5px var(--success)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.pq-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.pq-row:last-child{border-bottom:none}
+.pq-num{font-family:'Bebas Neue',sans-serif;font-size:18px;min-width:22px;line-height:1;text-align:center}
+.pq-num.mine{color:var(--accent)}
+.pq-num.other{color:var(--muted)}
+.pq-info{flex:1;min-width:0}
+.pq-song{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pq-song.mine{color:var(--text);font-weight:700}
+.pq-song.other{color:var(--muted)}
+.pq-singer{font-size:11px;color:var(--muted);margin-top:1px}
+.pq-singer.mine{color:var(--gold)}
+.pq-badge{font-size:10px;background:rgba(230,57,70,0.2);color:var(--accent);border-radius:4px;padding:2px 6px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.pos-queue-more{font-size:12px;color:var(--muted);text-align:center;padding:8px 0}
+.pos-close{width:100%;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:12px;padding:13px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:14px}
 .pos-close:active{background:rgba(255,255,255,0.05)}
+
+/* NEXT UP FLASH ALERT */
+.flash-overlay{position:fixed;inset:0;z-index:600;pointer-events:none;opacity:0}
+@keyframes screenFlash{
+  0%  {opacity:0}
+  8%  {opacity:1;background:#fff}
+  20% {opacity:.6;background:#e63946}
+  35% {opacity:1;background:#fff}
+  50% {opacity:.6;background:#e63946}
+  65% {opacity:1;background:#fff}
+  80% {opacity:.3;background:#e63946}
+  100%{opacity:0}
+}
+.flash-overlay.go{animation:screenFlash .9s ease-out forwards}
+
+/* YOU'RE UP BANNER */
+.yourup{position:fixed;inset:0;z-index:590;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);flex-direction:column;gap:0}
+.yourup.show{display:flex}
+.yourup-inner{text-align:center;padding:32px 28px;max-width:320px}
+.yourup-ico{font-size:72px;margin-bottom:8px;animation:bounce .5s ease-in-out infinite alternate}
+@keyframes bounce{0%{transform:translateY(0)}100%{transform:translateY(-14px)}}
+.yourup-title{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:3px;color:#fff;line-height:1;margin-bottom:6px;text-shadow:0 0 40px rgba(230,57,70,0.8)}
+.yourup-sub{font-size:17px;color:rgba(255,255,255,0.7);margin-bottom:6px;line-height:1.4}
+.yourup-song{font-size:14px;color:var(--gold);font-weight:600;margin-bottom:24px}
+.yourup-dismiss{background:var(--accent);color:#fff;border:none;border-radius:14px;padding:16px 40px;font-size:20px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 30px rgba(230,57,70,0.6);animation:pulse-btn 1s ease-in-out infinite alternate}
+@keyframes pulse-btn{0%{box-shadow:0 4px 20px rgba(230,57,70,0.4)}100%{box-shadow:0 4px 40px rgba(230,57,70,0.9)}}
 </style>
 <script src="songs-data.js"></script>
 </head>
@@ -140,7 +202,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       <div class="htitle">Sonic Karaoke</div>
       <div class="hsub">Vol 12 / 2026 — Request a song</div>
     </div>
-    <div class="hcount" id="hcount">—</div>
+    <div class="hright">
+      <div class="hcount" id="hcount">—</div>
+      <button class="help-btn" onclick="showHowTo()" title="How it works">?</button>
+    </div>
   </div>
   <div class="swrap">
     <input class="sbox" type="search" id="search"
@@ -173,7 +238,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
   <div class="sheet">
     <div class="handle"></div>
     <div class="mtitle">🎤 Request Song</div>
-    <div class="msub" id="req-modal-sub">Your name is pre-filled — change it if your partner is singing</div>
+    <div class="msub">Your name is pre-filled — change it if a friend is singing</div>
     <div class="msong" id="msong"></div>
     <input class="ninput" type="text" id="req-name" placeholder="Your name…" autocomplete="off">
     <button class="subbtn" onclick="submitRequest()">SUBMIT REQUEST</button>
@@ -194,12 +259,91 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
   </div>
 </div>
 
+<!-- HOW-TO INSTRUCTIONS -->
+<div class="howto" id="howto">
+  <div class="howto-sheet">
+    <div class="handle"></div>
+    <div class="howto-title">How It Works</div>
+    <div class="howto-sub">Everything you need to know in 30 seconds</div>
+
+    <div class="step">
+      <div class="step-ico">🔍</div>
+      <div class="step-body">
+        <div class="step-title">Search for your song</div>
+        <div class="step-desc">Type an artist name or song title in the search bar. The list filters as you type. Tap any song to select it.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-ico">🎤</div>
+      <div class="step-body">
+        <div class="step-title">Submit your request</div>
+        <div class="step-desc">Tap <b>REQUEST THIS SONG</b>, confirm your name, then hit <b>SUBMIT</b>. Your request goes straight to the DJ.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-ico">🔢</div>
+      <div class="step-body">
+        <div class="step-title">See your queue number</div>
+        <div class="step-desc">After submitting, you'll see your position in the queue. The number updates automatically — <b>you don't need to stay on this screen</b>.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-ico">⏳</div>
+      <div class="step-body">
+        <div class="step-title">Wait for your turn</div>
+        <div class="step-desc">The DJ works through the queue in order. Position updates stop after 22 minutes to <b>save your battery</b> — tap <b>?</b> anytime to check again.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-ico">💡</div>
+      <div class="step-body">
+        <div class="step-title">Tips</div>
+        <div class="step-desc">You can request more than one song — just search and submit again. Your name is remembered for the whole evening. A friend can use your phone under a different name.</div>
+      </div>
+    </div>
+
+    <button class="howto-dismiss" onclick="dismissHowTo()">GOT IT — LET'S SING! 🎤</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
+<!-- POSITION CARD -->
+<div class="pos-card" id="pos-card">
+  <div class="pos-inner">
+    <div class="pos-ico">🎤</div>
+    <div class="pos-title">YOU ARE NUMBER</div>
+    <div class="pos-number" id="pos-number">…</div>
+    <div class="pos-total" id="pos-total">fetching position…</div>
+
+    <div class="pos-myreq">
+      <div class="pos-myreq-label">Your request</div>
+      <div class="pos-song-title" id="pos-song-title"></div>
+      <div class="pos-song-artist" id="pos-song-artist"></div>
+      <div class="pos-singer" id="pos-singer"></div>
+    </div>
+
+    <div class="pos-status" id="pos-status"></div>
+    <div class="pos-phase" id="pos-phase"></div>
+
+    <div class="pos-queue-section" id="pos-queue-section" style="display:none">
+      <div class="pos-queue-title"><div class="pos-queue-dot"></div>LIVE QUEUE</div>
+      <div id="pos-queue-list"></div>
+    </div>
+
+    <button class="pos-close" onclick="closePosCard()">✕ Close &amp; keep browsing</button>
+  </div>
+</div>
+
 <script>
-// ── CONFIG — replace with your Firebase Realtime DB URL ──
-const FIREBASE = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
-const STORAGE_KEY = 'sk_singer_name'; // persists across sessions
+// ── CONFIG ──
+const FIREBASE   = 'https://sonic-dj-console-default-rtdb.firebaseio.com';
+const STORAGE_KEY     = 'sk_singer_name';
+const STORAGE_HOWTO   = 'sk_howto_seen';
 
 let songs = [], filtered = [], selected = null, guestName = '';
 let searchTimer = null;
@@ -208,23 +352,18 @@ let searchTimer = null;
 // INIT
 // ══════════════════════════════════════════
 async function init() {
-  // Service worker for offline support
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-  // Online/offline banner
   const banner = document.getElementById('offline-banner');
   window.addEventListener('offline', () => banner.classList.add('show'));
   window.addEventListener('online',  () => banner.classList.remove('show'));
   if (!navigator.onLine) banner.classList.add('show');
 
-  // Load song list from embedded JS (works offline and as file://)
+  // Load songs from embedded JS — no fetch needed
   if (typeof window.SONGS_DATA !== 'undefined' && window.SONGS_DATA.length) {
     songs = window.SONGS_DATA;
     document.getElementById('hcount').textContent = songs.length.toLocaleString() + ' songs';
   } else {
-    // Fallback: try fetching songs.json (GitHub Pages / web server)
     try {
       const r = await fetch('songs.json');
       songs = await r.json();
@@ -236,55 +375,66 @@ async function init() {
     }
   }
 
-  // Show welcome screen (uses persisted name if available)
-  showWelcome();
-
-  // Search handler
   document.getElementById('search').addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(doSearch, 130);
   });
-
-  // Delegated song tap handler
   initListListener();
-
-  // Enter keys
   document.getElementById('welcome-name').addEventListener('keydown', e => { if(e.key==='Enter') confirmWelcomeName(); });
-  document.getElementById('req-name').addEventListener('keydown', e => { if(e.key==='Enter') submitRequest(); });
+  document.getElementById('req-name').addEventListener('keydown',     e => { if(e.key==='Enter') submitRequest(); });
+
+  // Show how-to first time ever, then welcome
+  if (!localStorage.getItem(STORAGE_HOWTO)) {
+    showHowTo(true); // true = auto-show (will open welcome after dismiss)
+  } else {
+    showWelcome();
+  }
 }
 
 // ══════════════════════════════════════════
-// WELCOME SCREEN — uses localStorage to persist name
+// HOW-TO SCREEN
+// ══════════════════════════════════════════
+let howtoAutoShow = false;
+
+function showHowTo(autoShow) {
+  howtoAutoShow = !!autoShow;
+  document.getElementById('howto').classList.add('show');
+}
+
+function dismissHowTo() {
+  localStorage.setItem(STORAGE_HOWTO, '1');
+  document.getElementById('howto').classList.remove('show');
+  if (howtoAutoShow) showWelcome(); // proceed to welcome after first-time view
+}
+
+// ══════════════════════════════════════════
+// WELCOME SCREEN
 // ══════════════════════════════════════════
 function showWelcome() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  const w = document.getElementById('welcome');
-  w.classList.add('show');
+  document.getElementById('welcome').classList.add('show');
 
   if (saved) {
-    // ── RETURNING USER ──
     guestName = saved;
-    document.getElementById('w-ico').textContent = '👋';
+    document.getElementById('w-ico').textContent   = '👋';
     document.getElementById('w-title').textContent = 'Welcome back!';
-    document.getElementById('w-body').innerHTML =
+    document.getElementById('w-body').innerHTML    =
       '<div class="wreturn-name">' + esc(saved) + '</div>' +
       '<div class="wreturn-sub">Great to see you again — ready to sing?</div>';
-    document.getElementById('w-label').textContent = 'Is that still you?';
-    document.getElementById('welcome-name').value = saved;
-    document.getElementById('w-confirm').textContent = "YES, LET'S SING! 🎤";
-    document.getElementById('w-notme').style.display = 'block';
+    document.getElementById('w-label').textContent     = 'Is that still you?';
+    document.getElementById('welcome-name').value      = saved;
+    document.getElementById('w-confirm').textContent   = "YES, LET'S SING! 🎤";
+    document.getElementById('w-notme').style.display   = 'block';
   } else {
-    // ── NEW USER ──
-    document.getElementById('w-ico').textContent = '🎤';
+    document.getElementById('w-ico').textContent   = '🎤';
     document.getElementById('w-title').textContent = 'Welcome!';
-    document.getElementById('w-body').innerHTML =
+    document.getElementById('w-body').innerHTML    =
       '<div class="wsub">Browse ' + songs.length.toLocaleString() + ' songs and send your request straight to the DJ.</div>';
-    document.getElementById('w-label').textContent = "What's your name?";
-    document.getElementById('welcome-name').value = '';
-    document.getElementById('w-confirm').textContent = "LET'S SING! 🎉";
-    document.getElementById('w-notme').style.display = 'none';
+    document.getElementById('w-label').textContent     = "What's your name?";
+    document.getElementById('welcome-name').value      = '';
+    document.getElementById('w-confirm').textContent   = "LET'S SING! 🎉";
+    document.getElementById('w-notme').style.display   = 'none';
   }
-
   setTimeout(() => document.getElementById('welcome-name').focus(), 400);
 }
 
@@ -292,21 +442,20 @@ function confirmWelcomeName() {
   const name = document.getElementById('welcome-name').value.trim();
   if (!name) { document.getElementById('welcome-name').focus(); return; }
   guestName = name;
-  localStorage.setItem(STORAGE_KEY, name); // persist for future visits
+  localStorage.setItem(STORAGE_KEY, name);
   document.getElementById('welcome').classList.remove('show');
-  filtered = songs; // default: show all songs
+  filtered = songs;
   renderList(songs, '');
   document.getElementById('rbar').innerHTML = '<b>' + songs.length.toLocaleString() + '</b> songs — search to filter';
 }
 
-// Returning user wants to sing under a different name
 function switchWelcomeName() {
-  document.getElementById('w-ico').textContent = '✏️';
+  document.getElementById('w-ico').textContent   = '✏️';
   document.getElementById('w-title').textContent = 'Change Name';
-  document.getElementById('w-body').innerHTML =
+  document.getElementById('w-body').innerHTML    =
     '<div class="wsub">Enter the name you\'d like to use for your requests today.</div>';
-  document.getElementById('w-label').textContent = 'New name:';
-  document.getElementById('welcome-name').value = '';
+  document.getElementById('w-label').textContent   = 'New name:';
+  document.getElementById('welcome-name').value    = '';
   document.getElementById('w-confirm').textContent = 'SAVE & SING 🎤';
   document.getElementById('w-notme').style.display = 'none';
   document.getElementById('welcome-name').focus();
@@ -323,12 +472,9 @@ function doSearch() {
     document.getElementById('rbar').innerHTML = '<b>' + songs.length.toLocaleString() + '</b> songs — search to filter';
     return;
   }
-  filtered = songs.filter(s =>
-    s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
-  );
+  filtered = songs.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q));
   document.getElementById('rbar').innerHTML =
-    '<b>' + filtered.length.toLocaleString() + '</b> match' +
-    (filtered.length !== 1 ? 'es' : '') + ' for "' + esc(q) + '"';
+    '<b>' + filtered.length.toLocaleString() + '</b> match' + (filtered.length !== 1 ? 'es' : '') + ' for "' + esc(q) + '"';
   renderList(filtered, q);
 }
 
@@ -341,14 +487,8 @@ function clearSearch() {
 }
 
 // ══════════════════════════════════════════
-// RENDER
+// RENDER SONG LIST
 // ══════════════════════════════════════════
-function renderPrompt() {
-  const el = document.getElementById('list');
-  el.className = 'list';
-  el.innerHTML = '<div class="empty"><div class="ico">🎵</div><p>Type an artist or song title<br>to find your song.</p></div>';
-}
-
 function sizeClass(n) {
   if (n <= 5)   return 'sz-xl';
   if (n <= 20)  return 'sz-lg';
@@ -363,6 +503,7 @@ function hl(text, q) {
   if (i === -1) return esc(text);
   return esc(text.slice(0,i)) + '<em>' + esc(text.slice(i,i+q.length)) + '</em>' + esc(text.slice(i+q.length));
 }
+
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -374,17 +515,11 @@ function renderList(list, q) {
     el.innerHTML = '<div class="empty"><div class="ico">🔍</div><p>No songs found.<br>Try a different search.</p></div>';
     return;
   }
-
-  // For the full unfiltered list, cap render at 300 for performance
-  // and show a prompt to search for more
-  const isFull = !q && list === songs;
+  const isFull   = !q && list === songs;
   const toRender = isFull ? list.slice(0, 300) : list;
+  el.className   = 'list ' + sizeClass(list.length);
 
-  el.className = 'list ' + sizeClass(list.length);
-
-  // Group by artist
-  const byArtist = {};
-  const artistOrder = [];
+  const byArtist = {}, artistOrder = [];
   toRender.forEach(s => {
     if (!byArtist[s.artist]) { byArtist[s.artist] = []; artistOrder.push(s.artist); }
     byArtist[s.artist].push(s);
@@ -395,10 +530,9 @@ function renderList(list, q) {
     html += '<div class="ag"><div class="alabel">' + hl(artist, q) + '</div>';
     byArtist[artist].forEach(s => {
       const sel = selected && selected.artist === s.artist && selected.title === s.title;
-      // Use data attributes to avoid any quote-in-onclick escaping issues
       html += '<div class="si' + (sel ? ' sel' : '') + '"' +
         ' data-artist="' + esc(s.artist) + '"' +
-        ' data-title="' + esc(s.title) + '">' +
+        ' data-title="'  + esc(s.title)  + '">' +
         '<div class="st">' + hl(s.title, q) + '</div>' +
         (sel ? '<div class="schk">✓</div>' : '') +
         '</div>';
@@ -410,12 +544,11 @@ function renderList(list, q) {
     html += '<div class="empty" style="padding:30px 20px"><p style="font-size:14px">Showing first 300 of ' +
       list.length.toLocaleString() + ' songs.<br><b style="color:var(--gold)">Search above to find any song.</b></p></div>';
   }
-
   el.innerHTML = html;
 }
 
 // ══════════════════════════════════════════
-// SONG SELECTION — delegated listener on list container
+// SONG SELECTION
 // ══════════════════════════════════════════
 function initListListener() {
   document.getElementById('list').addEventListener('click', function(e) {
@@ -428,24 +561,24 @@ function initListListener() {
   });
 }
 
+function selectSong(artist, title) {
+  selected = { artist, title };
+  document.getElementById('prev-title').textContent  = title;
+  document.getElementById('prev-artist').textContent = artist;
+  document.getElementById('reqbar').classList.add('vis');
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  renderList(filtered, q);
+  setTimeout(() => {
+    const el = document.querySelector('.si.sel');
+    if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 80);
+}
+
 function cancelSelection() {
   selected = null;
   document.getElementById('reqbar').classList.remove('vis');
   const q = document.getElementById('search').value.trim().toLowerCase();
   renderList(filtered, q);
-}
-
-function selectSong(artist, title) {
-  selected = { artist, title };
-  document.getElementById('prev-title').textContent = title;
-  document.getElementById('prev-artist').textContent = artist;
-  document.getElementById('reqbar').classList.add('vis');
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  renderList(filtered, q); // filtered is always the current visible list
-  setTimeout(() => {
-    const el = document.querySelector('.si.sel');
-    if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
-  }, 80);
 }
 
 // ══════════════════════════════════════════
@@ -455,7 +588,6 @@ function openReqModal() {
   if (!selected) return;
   document.getElementById('msong').innerHTML =
     '<strong>' + esc(selected.title) + '</strong><span>' + esc(selected.artist) + '</span>';
-  // Pre-fill with saved name — partner can edit before submitting
   document.getElementById('req-name').value = guestName;
   document.getElementById('req-modal').classList.add('open');
   setTimeout(() => document.getElementById('req-name').focus(), 350);
@@ -465,75 +597,104 @@ function closeReqModal() {
   document.getElementById('req-modal').classList.remove('open');
 }
 
-// Position polling state
-let posReqId   = null;  // Firebase ID of the submitted request
-let posPoller  = null;  // interval handle
-let posGiveUp  = null;  // timeout handle — stops polling after 2 minutes
+// ══════════════════════════════════════════
+// SUBMIT REQUEST
+// ══════════════════════════════════════════
+let posReqId  = null;
+let posPoller = null;
+let posTimer1 = null; // phase transition timer
+let posTimer2 = null; // hard stop timer
 
 async function submitRequest() {
   const name = document.getElementById('req-name').value.trim();
   if (!name) { document.getElementById('req-name').focus(); return; }
+  nextUpAlerted = false; // reset for each new request
 
   guestName = name;
   localStorage.setItem(STORAGE_KEY, name);
 
-  const req = {
-    singer: name,
-    artist: selected.artist,
-    title:  selected.title,
-    ts:     Date.now(),
-    status: 'waiting'
-  };
-
-  // Capture song info for the position card before clearing selected
   const submittedSong   = selected.title;
   const submittedArtist = selected.artist;
   const submittedName   = name;
 
+  const req = { singer: name, artist: selected.artist, title: selected.title, ts: Date.now(), status: 'waiting' };
+
   let fbId = null;
   try {
     const r  = await fetch(FIREBASE + '/requests.json', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req)
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req)
     });
     const d  = await r.json();
-    fbId = d.name; // Firebase returns { "name": "-Nabc123..." }
-  } catch(e) {
-    console.warn('Firebase unavailable:', e);
-  }
+    fbId = d.name;
+  } catch(e) { console.warn('Firebase unavailable:', e); }
 
   closeReqModal();
   document.getElementById('reqbar').classList.remove('vis');
   selected = null;
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  renderList(filtered, q);
+  renderList(filtered, document.getElementById('search').value.trim().toLowerCase());
 
-  // Show position card immediately
-  showPosCard(submittedSong, submittedArtist, submittedName, null, null);
+  showPosCard(submittedSong, submittedArtist, submittedName, null, null, null);
 
-  // Start brief polling to get position from DJ console (max 2 minutes)
   if (fbId && !FIREBASE.includes('YOUR-PROJECT')) {
     posReqId = fbId;
     startPositionPolling(fbId, submittedSong, submittedArtist, submittedName);
   }
 }
 
-function showPosCard(title, artist, singer, position, total) {
+// ══════════════════════════════════════════
+// POSITION CARD
+// ══════════════════════════════════════════
+function showPosCard(title, artist, singer, position, total, queueItems) {
   document.getElementById('pos-song-title').textContent  = title;
   document.getElementById('pos-song-artist').textContent = artist;
   document.getElementById('pos-singer').textContent      = '🎤 ' + singer;
+
+  const numEl = document.getElementById('pos-number');
   if (position !== null) {
-    document.getElementById('pos-number').textContent = position;
-    document.getElementById('pos-total').textContent  = 'of ' + total + ' in the queue';
+    if (numEl.textContent !== String(position)) {
+      numEl.textContent = position;
+      numEl.classList.remove('pop');
+      void numEl.offsetWidth; // reflow to restart animation
+      numEl.classList.add('pop');
+    }
+    // 🚨 Alert when they reach position 1
+    if (position === 1) triggerNextUpAlert(title, artist);
+    document.getElementById('pos-total').textContent = 'of ' + total + ' in the queue';
     document.getElementById('pos-status').textContent = '';
-    document.getElementById('pos-status').className   = 'pos-status';
   } else {
-    document.getElementById('pos-number').textContent = '…';
-    document.getElementById('pos-total').textContent  = 'waiting for queue position';
-    document.getElementById('pos-status').innerHTML   = '<span class="pos-updating">Checking with DJ…</span>';
+    numEl.textContent = '…';
+    document.getElementById('pos-total').textContent   = 'waiting for queue position';
+    document.getElementById('pos-status').innerHTML    = '<span class="pos-updating">⏳ Checking with DJ…</span>';
   }
+
+  // Render full queue list if provided
+  if (queueItems && queueItems.length) {
+    renderQueueOnCard(queueItems, title, artist, singer);
+  }
+
   document.getElementById('pos-card').classList.add('show');
+}
+
+function renderQueueOnCard(items, myTitle, myArtist, mySinger) {
+  const section = document.getElementById('pos-queue-section');
+  const listEl  = document.getElementById('pos-queue-list');
+  section.style.display = 'block';
+
+  // Show all items, highlight the user's own
+  let html = '';
+  items.forEach((item, idx) => {
+    const isMine = item.title === myTitle && item.artist === myArtist && item.singer === mySinger;
+    html += `<div class="pq-row">
+      <div class="pq-num ${isMine ? 'mine' : 'other'}">${idx + 1}</div>
+      <div class="pq-info">
+        <div class="pq-song ${isMine ? 'mine' : 'other'}">${esc(item.title)}</div>
+        <div class="pq-singer ${isMine ? 'mine' : ''}">${esc(item.singer)}${isMine ? ' — you' : ''}</div>
+      </div>
+      ${isMine ? '<div class="pq-badge">YOU</div>' : ''}
+    </div>`;
+  });
+
+  listEl.innerHTML = html;
 }
 
 function closePosCard() {
@@ -541,57 +702,138 @@ function closePosCard() {
   stopPositionPolling();
 }
 
+// ══════════════════════════════════════════
+// TWO-PHASE POLLING — battery friendly
+// Phase 1: every 5s for 2 min  (active watching)
+// Phase 2: every 30s for 20 min (phone put down)
+// Phase 3: stop completely
+// ══════════════════════════════════════════
 function startPositionPolling(fbId, title, artist, singer) {
-  stopPositionPolling(); // clear any previous
+  stopPositionPolling();
 
-  // Poll every 5 seconds for up to 2 minutes (24 polls max)
-  let attempts = 0;
-  const MAX_ATTEMPTS = 24;
-  const POLL_MS      = 5000;
-  const STOP_MS      = MAX_ATTEMPTS * POLL_MS; // 2 minutes
-
-  posPoller = setInterval(async () => {
-    attempts++;
+  const pollFn = async (phase) => {
     try {
+      // Fetch the user's own request record
       const r    = await fetch(FIREBASE + '/requests/' + fbId + '.json');
       const data = await r.json();
 
       if (!data || data.status === 'done' || data.status === 'removed') {
-        // Song has been sung or removed — stop polling
         document.getElementById('pos-number').textContent = '✓';
-        document.getElementById('pos-total').textContent  = 'Your song has been called!';
+        document.getElementById('pos-total').textContent  = 'Your song has been called — get up there! 🎤';
         document.getElementById('pos-status').textContent = '';
+        document.getElementById('pos-phase').textContent  = '';
         stopPositionPolling();
         return;
       }
 
       if (data.position != null) {
-        // DJ has written the position back — update the card
-        showPosCard(title, artist, singer, data.position, data.queueTotal || '?');
+        // Also fetch the full queue to show all waiting songs
+        let queueItems = null;
+        try {
+          const qr   = await fetch(FIREBASE + '/requests.json');
+          const qdata = await qr.json();
+          if (qdata) {
+            queueItems = Object.values(qdata)
+              .filter(i => i.status === 'waiting' && i.position != null)
+              .sort((a, b) => a.position - b.position);
+          }
+        } catch(e) {}
+
+        showPosCard(title, artist, singer, data.position, data.queueTotal || '?', queueItems);
+        document.getElementById('pos-phase').textContent =
+          phase === 1 ? 'Updating every 5s' : 'Updating every 30s';
       }
+    } catch(e) { /* network blip — wait for next poll */ }
+  };
 
-    } catch(e) { /* network blip — just wait for next poll */ }
+  // Phase 1: every 5 seconds for 2 minutes
+  document.getElementById('pos-phase').textContent = 'Updating every 5s';
+  posPoller = setInterval(() => pollFn(1), 5000);
+  pollFn(1); // immediate first poll
 
-    if (attempts >= MAX_ATTEMPTS) stopPositionPolling();
-  }, POLL_MS);
+  // After 2 minutes — switch to Phase 2
+  posTimer1 = setTimeout(() => {
+    clearInterval(posPoller);
+    document.getElementById('pos-phase').textContent = 'Updating every 30s';
+    posPoller = setInterval(() => pollFn(2), 30000);
 
-  // Hard stop after 2 minutes regardless
-  posGiveUp = setTimeout(() => {
-    stopPositionPolling();
-    const statusEl = document.getElementById('pos-status');
-    if (statusEl) {
-      statusEl.textContent = 'Position updates stopped to save battery.';
-      statusEl.className   = 'pos-status';
-    }
-  }, STOP_MS);
+    // After 20 more minutes — Phase 3: stop completely
+    posTimer2 = setTimeout(() => {
+      stopPositionPolling();
+      const statusEl = document.getElementById('pos-status');
+      const phaseEl  = document.getElementById('pos-phase');
+      if (statusEl) statusEl.textContent = 'Updates stopped to save battery. Reopen the app to refresh.';
+      if (phaseEl)  phaseEl.textContent  = '';
+    }, 20 * 60 * 1000);
+
+  }, 2 * 60 * 1000);
 }
 
 function stopPositionPolling() {
   clearInterval(posPoller);
-  clearTimeout(posGiveUp);
-  posPoller = posGiveUp = null;
+  clearTimeout(posTimer1);
+  clearTimeout(posTimer2);
+  posPoller = posTimer1 = posTimer2 = null;
 }
 
+
+// ══════════════════════════════════════════
+// NEXT UP ALERT — flash, vibrate, sound, banner
+// ══════════════════════════════════════════
+let nextUpAlerted = false; // only alert once per submission
+
+function triggerNextUpAlert(songTitle, songArtist) {
+  if (nextUpAlerted) return;
+  nextUpAlerted = true;
+
+  // 1. Screen flash
+  const fl = document.getElementById('flash-overlay');
+  fl.classList.remove('go');
+  void fl.offsetWidth;
+  fl.classList.add('go');
+
+  // 2. Vibration (if supported) — long-short-long pattern
+  if ('vibrate' in navigator) {
+    navigator.vibrate([400, 150, 400, 150, 600]);
+  }
+
+  // 3. Audio beep using Web Audio API (no file needed)
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const play = (freq, start, dur, vol) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.type      = 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0, ctx.currentTime + start);
+      g.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      o.start(ctx.currentTime + start);
+      o.stop(ctx.currentTime  + start + dur + 0.05);
+    };
+    // Three rising tones: cheerful "ding ding ding!"
+    play(880, 0.0,  0.18, 0.4);
+    play(988, 0.22, 0.18, 0.4);
+    play(1318,0.44, 0.35, 0.5);
+  } catch(e) {}
+
+  // 4. Show the YOU'RE UP banner
+  document.getElementById('yourup-song').textContent = songTitle + ' — ' + songArtist;
+  document.getElementById('yourup').classList.add('show');
+
+  // Also force-open the position card if it was closed
+  document.getElementById('pos-card').classList.add('show');
+}
+
+function dismissYourup() {
+  document.getElementById('yourup').classList.remove('show');
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -602,21 +844,19 @@ function showToast(msg) {
 init();
 </script>
 
-<!-- POSITION CARD -->
-<div class="pos-card" id="pos-card">
-  <div class="pos-inner">
-    <div class="pos-ico">🎤</div>
-    <div class="pos-title">YOU ARE NUMBER</div>
-    <div class="pos-number" id="pos-number">—</div>
-    <div class="pos-total" id="pos-total">in the queue</div>
-    <div class="pos-song">
-      <div class="pos-song-title" id="pos-song-title"></div>
-      <div class="pos-song-artist" id="pos-song-artist"></div>
-      <div class="pos-singer" id="pos-singer"></div>
-    </div>
-    <div class="pos-status" id="pos-status"></div>
-    <button class="pos-close" onclick="closePosCard()">✕ Close & keep browsing</button>
+<!-- SCREEN FLASH OVERLAY -->
+<div class="flash-overlay" id="flash-overlay"></div>
+
+<!-- YOU'RE UP BANNER -->
+<div class="yourup" id="yourup">
+  <div class="yourup-inner">
+    <div class="yourup-ico">🎤</div>
+    <div class="yourup-title">YOU'RE UP!</div>
+    <div class="yourup-sub">Get ready — you're next to sing</div>
+    <div class="yourup-song" id="yourup-song"></div>
+    <button class="yourup-dismiss" onclick="dismissYourup()">I'M READY! 🎉</button>
   </div>
 </div>
+
 </body>
 </html>
